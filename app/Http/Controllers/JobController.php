@@ -18,6 +18,7 @@ class JobController extends Controller
      */
     public function view(Request $request)
     {
+
         $jobs = Job::where('status', JobStatus::Open)->paginate($request->per_page);
         return JobResource::collection($jobs);
     }
@@ -33,7 +34,7 @@ class JobController extends Controller
         $job = Job::where('status', JobStatus::Open)->find($id);
         return new JobResource($job);
     }
-
+   
     /**
      * Get a list of opening jobs to applicants by admin.
      *
@@ -52,10 +53,12 @@ class JobController extends Controller
      * @param integer $id
      * @return void
      */
-    public function showAdmin(int $id)
+   
+     public function showByAdmin(int $id)
     {
-        $job = Job::find($id);
-        return new JobResource($job);
+        //the function name before was showAdmin and mispelled as not recognized in the routes
+         $job = Job::find($id);
+         return new JobResource($job);  
     }
 
     /**
@@ -66,13 +69,24 @@ class JobController extends Controller
      */
     public function create(JobStoreRequest $request)
     {
-        $job = new Job;
-        $job->company_id = $request->company_id;
-        $job->job_title_id = $request->job_title_id;
-        $job->description = $request->description;
-        $job->status = JobStatus::fromKey($request->status);
-        $job->save();
+        /**==============before===========
+        * $job = new Job;
+        * $job->company_id = $request->company_id;
+        * $job->job_title_id = $request->job_title_id;
+        * $job->description = $request->description;
+        * $job->status = JobStatus::fromKey($request->status);
+        * $job->save();
+        * return new JobResource($job);
+        *============after============
+        */
+        $job=Job::create($request->store());
         return new JobResource($job);
+        /**moved handle request logic including update and create as function called store 
+        *
+        *because if there are too many fields, assigning 1 by 1 all fields will take a lot of effort
+        *also it is reusable to implement at update method by making a function inside jobStoreRequest 
+        *
+        */    
     }
 
     /**
@@ -84,14 +98,23 @@ class JobController extends Controller
      */
     public function update(JobStoreRequest $request, int $id)
     {
-        $job = Job::find($id);
-        $job->company_id = $request->company_id;
-        $job->job_title_id = $request->job_title_id;
-        $job->description = $request->description;
-        $job->status = JobStatus::fromKey($request->status);
-        $job->save();
-        return new JobResource($job);
+
+        /**==========before==========
+        * $job = Job::find($id);
+        * $job->company_id = $request->company_id;
+        * $job->job_title_id = $request->job_title_id;
+        * $job->description = $request->description;
+        * $job->status = JobStatus::fromKey($request->status);
+        * $job->save();
+        *return new JobResource($job);
+        */
+        //==========after=======//
+        $job=Job::find($id);
+        $job->update($request->store());
+        return new JobResource($job); 
+        /**moved handle request logic including update and create as function called store */
     }
+    
 
     /**
      * Delete job by admin.
@@ -102,8 +125,16 @@ class JobController extends Controller
      */
     public function delete(int $id)
     {
-        $job = Job::find($id);
-        $job->delete();
+        /**=============Before==========
+         *
+        * $job = Job::find($id);
+        * $job->delete();
+         * return response()->noContent();
+         * 
+         */
+        /**==============After========= */
+        Job::find($id)->delete();
         return response()->noContent();
+        /** removed the declaration because it is not used */
     }
 }

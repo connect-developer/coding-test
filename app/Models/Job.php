@@ -13,6 +13,19 @@ class Job extends Model
     protected $casts = [
         'status' => JobStatus::class,
     ];
+    /** added fillable variable so we can retrieve mass fields*/
+    /** i think rather than writing request and also the field name in the controller
+     * this is better to just write the fileds in a model 
+     * and then take all the request that is validated so unnecessary request won`t come in
+     */
+    protected $fillable=[
+        'company_id',
+        'job_title_id',
+        'description',
+        'status'
+    ];
+    
+    protected $hidden=["company_id","job_title_id"];
 
     public function company()
     {

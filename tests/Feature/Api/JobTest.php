@@ -15,7 +15,6 @@ class JobTest extends TestCase
         parent::setUp();
 
         $this->admin = Admin::factory()->create();
-
         Job::factory()->count(25)->open()->create();
         Job::factory()->count(30)->closed()->create();
     }
