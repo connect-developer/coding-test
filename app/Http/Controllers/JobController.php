@@ -6,6 +6,7 @@ use App\Enums\JobStatus;
 use App\Http\Requests\JobStoreRequest;
 use App\Http\Resources\JobResource;
 use App\Models\Job;
+use App\Models\JobCRUD;
 use Illuminate\Http\Request;
 
 class JobController extends Controller
@@ -66,12 +67,7 @@ class JobController extends Controller
      */
     public function create(JobStoreRequest $request)
     {
-        $job = new Job;
-        $job->company_id = $request->company_id;
-        $job->job_title_id = $request->job_title_id;
-        $job->description = $request->description;
-        $job->status = JobStatus::fromKey($request->status);
-        $job->save();
+        $job = JobCRUD::store($request);
         return new JobResource($job);
     }
 
@@ -84,12 +80,7 @@ class JobController extends Controller
      */
     public function update(JobStoreRequest $request, int $id)
     {
-        $job = Job::find($id);
-        $job->company_id = $request->company_id;
-        $job->job_title_id = $request->job_title_id;
-        $job->description = $request->description;
-        $job->status = JobStatus::fromKey($request->status);
-        $job->save();
+        $job = JobCRUD::store($request, $id);
         return new JobResource($job);
     }
 
@@ -102,8 +93,7 @@ class JobController extends Controller
      */
     public function delete(int $id)
     {
-        $job = Job::find($id);
-        $job->delete();
+        $job = JobCRUD::delete($id);
         return response()->noContent();
     }
 }
