@@ -14,14 +14,15 @@ class JobResource extends JsonResource
      */
     public function toArray($request)
     {
+        // dd($this);
         return [
-            'id' => $this->id,
-            'company' => new CompanyResource($this->company),
-            'job_title' => new JobTitleResource($this->jobTitle),
-            'description' => $this->description,
-            'status' => $this->status->key,
-            'created_at' => $this->created_at->timestamp,
-            'updated_at' => $this->updated_at->timestamp,
+            'id' => $this->id ?? '',
+            'company' => new CompanyResource($this->company  ?? ''),
+            'job_title' => new JobTitleResource($this->jobTitle  ?? ''),
+            'description' => $this->description ?? '',
+            'status' => $this->status->key ?? '',
+            'created_at' => $this->created_at->timestamp ?? '',
+            'updated_at' => $this->updated_at->timestamp ?? '',
         ];
     }
 }

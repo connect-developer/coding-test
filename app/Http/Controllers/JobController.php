@@ -7,9 +7,23 @@ use App\Http\Requests\JobStoreRequest;
 use App\Http\Resources\JobResource;
 use App\Models\Job;
 use Illuminate\Http\Request;
+use App\Repositories\Job\IJobRepository;
+use App\Services\Job\IJobService;
 
 class JobController extends Controller
 {
+
+    private IJobRepository $jobRepository;
+    private IJobService $jobService;
+
+    public function __construct(
+        IJobRepository $jobRepository,
+        IJobService $jobService
+    )
+    {
+        $this->jobRepository = $jobRepository;
+        $this->jobService = $jobService;
+    }
     /**
      * Get a list of opening jobs to applicants.
      *
@@ -18,7 +32,7 @@ class JobController extends Controller
      */
     public function view(Request $request)
     {
-        $jobs = Job::where('status', JobStatus::Open)->paginate($request->per_page);
+        $jobs = $this->jobRepository->GetOpenJobs($request);
         return JobResource::collection($jobs);
     }
 
@@ -30,7 +44,10 @@ class JobController extends Controller
      */
     public function show(int $id)
     {
-        $job = Job::where('status', JobStatus::Open)->find($id);
+        $job = $this->jobRepository->GetOpenJobByID($id);
+        if($job == null){
+            abort(404, "The Partner was not found");
+        }
         return new JobResource($job);
     }
 
@@ -42,7 +59,7 @@ class JobController extends Controller
      */
     public function viewByAdmin(Request $request)
     {
-        $jobs = Job::paginate($request->per_page);
+        $jobs = $this->jobRepository->GetJobsByPage($request);
         return JobResource::collection($jobs);
     }
 
@@ -54,7 +71,7 @@ class JobController extends Controller
      */
     public function showAdmin(int $id)
     {
-        $job = Job::find($id);
+        $job = $this->jobRepository->GetJobByID($id);
         return new JobResource($job);
     }
 
@@ -66,12 +83,7 @@ class JobController extends Controller
      */
     public function create(JobStoreRequest $request)
     {
-        $job = new Job;
-        $job->company_id = $request->company_id;
-        $job->job_title_id = $request->job_title_id;
-        $job->description = $request->description;
-        $job->status = JobStatus::fromKey($request->status);
-        $job->save();
+        $job = $this->jobRepository->CreateJob($request);
         return new JobResource($job);
     }
 
@@ -84,12 +96,7 @@ class JobController extends Controller
      */
     public function update(JobStoreRequest $request, int $id)
     {
-        $job = Job::find($id);
-        $job->company_id = $request->company_id;
-        $job->job_title_id = $request->job_title_id;
-        $job->description = $request->description;
-        $job->status = JobStatus::fromKey($request->status);
-        $job->save();
+        $job = $this->jobService->UpdateJob($request, $id);
         return new JobResource($job);
     }
 
@@ -102,8 +109,7 @@ class JobController extends Controller
      */
     public function delete(int $id)
     {
-        $job = Job::find($id);
-        $job->delete();
+        $this->jobService->DeleteJob($id);
         return response()->noContent();
     }
 }

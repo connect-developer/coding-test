@@ -26,11 +26,17 @@ Route::middleware('auth:sanctum')->prefix('/admin')->group(function () {
     Route::get('me', [AdminController::class, 'me']);
 });
 
-Route::get('/jobs', [JobController::class, 'view'])->name('job.view');
-Route::get('/jobs/{id}', [JobController::class, 'show'])->name('job.show');
+Route::prefix('/jobs')->group(function () {
+    Route::get('', [JobController::class, 'view'])->name('job.view');
+    Route::get('/{id}', [JobController::class, 'show'])->name('job.show');
+});
 
-Route::get('/admin/jobs', [JobController::class, 'viewByAdmin'])->name('job.view.admin');
-Route::get('/admin/jobs/{id}', [JobController::class, 'showByAdmin'])->name('job.show.admin');
-Route::post('/admin/jobs', [JobController::class, 'create'])->name('job.create');
-Route::put('/admin/jobs/{id}', [JobController::class, 'update'])->name('job.update');
-Route::delete('/admin/jobs/{id}', [JobController::class, 'delete'])->name('job.delete');
+Route::prefix('/admin')->group(function () {
+    Route::prefix('/jobs')->group(function () {
+        Route::get('', [JobController::class, 'viewByAdmin'])->name('job.view.admin');
+        Route::get('/{id}', [JobController::class, 'showAdmin'])->name('job.show.admin');
+        Route::post('', [JobController::class, 'create'])->name('job.create');
+        Route::put('/{id}', [JobController::class, 'update'])->name('job.update');
+        Route::delete('/{id}', [JobController::class, 'delete'])->name('job.delete');
+    });
+});
