@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Api;
 
-use App\Models\Admin;
+use App\Models\User;
 use App\Models\Job;
 use Tests\TestCase;
 
@@ -14,7 +14,7 @@ class JobTest extends TestCase
     {
         parent::setUp();
 
-        $this->admin = Admin::factory()->create();
+        $this->admin = User::factory()->create();
 
         Job::factory()->count(25)->open()->create();
         Job::factory()->count(30)->closed()->create();

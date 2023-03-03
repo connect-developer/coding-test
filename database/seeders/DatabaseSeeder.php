@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Admin;
+use App\Models\User;
 use App\Models\Company;
 use App\Models\Job;
 use App\Models\JobTitle;
@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        Admin::factory()->create([
+        User::factory()->create([
             'email' => 'admin@example.net',
         ]);
         Company::factory()->count(100)->create();
