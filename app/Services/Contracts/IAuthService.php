@@ -10,5 +10,5 @@ interface IAuthService
 {
     public function login(LoginRequest $request): GenericObjectResponse;
 
-    public function logout(string $email): BasicResponse;
+    public function logout(): BasicResponse;
 }

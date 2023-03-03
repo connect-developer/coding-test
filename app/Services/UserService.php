@@ -27,11 +27,6 @@ class UserService extends BaseService implements IUserService
         $response = new GenericObjectResponse();
 
         try {
-            if ($request->route('path') !== 'admin' &&
-                $request->route('path') !== 'company') {
-                throw new ResponseNotFoundException('Not found');
-            }
-
             DB::beginTransaction();
 
             $register = $this->_userRepository->register($request);
@@ -44,14 +39,6 @@ class UserService extends BaseService implements IUserService
                 HttpResponseType::SUCCESS);
 
             Log::info("User register success");
-
-        } catch (ResponseNotFoundException $ex) {
-            $response = $this->setMessageResponse($response,
-                'ERROR',
-                HttpResponseType::NOT_FOUND,
-                $ex->getMessage());
-
-            Log::error("Invalid api endpoint url", $response->getMessageResponseError());
 
         } catch (QueryException $ex) {
             DB::rollBack();
