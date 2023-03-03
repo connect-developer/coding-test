@@ -4,6 +4,6 @@ namespace App\Exceptions;
 
 use Exception;
 
-class ResponseNotFoundException extends Exception
+class ResponseBadRequestException extends Exception
 {
 }

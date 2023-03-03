@@ -24,6 +24,8 @@ class User extends BaseAuthEntity implements MustVerifyEmail
         'password',
     ];
 
+    protected $dates = ['deleted_at'];
+
     /**
      * The attributes that should be hidden for serialization.
      *
