@@ -15,5 +15,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::post('{path}/register', [UserController::class, 'register'])->name('action.register');
-Route::post('{path}/login', [LoginController::class, 'login'])->name('action.login');
+Route::group(['prefix' => '{path}', 'middleware' => 'admin.company.path'], function () {
+    Route::post('/register', [UserController::class, 'register'])->name('action.register');
+    Route::post('/login', [LoginController::class, 'login'])->name('action.login');
+
+    Route::group(['middleware' => 'auth:sanctum'], function () {
+        Route::post('/logout', [LoginController::class, "logout"])->name('action.logout');
+    });
+});
+
+
+

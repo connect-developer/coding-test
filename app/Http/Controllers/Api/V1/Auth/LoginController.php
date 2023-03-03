@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Api\V1\Auth;
 use App\Http\Controllers\Api\ApiBaseController;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Services\Contracts\IAuthService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class LoginController extends ApiBaseController
 {
@@ -32,13 +30,14 @@ class LoginController extends ApiBaseController
         return $this->getObjectJsonResponse($loginResponse);
     }
 
-    public function logout(Request $request)
+    public function logout()
     {
-        Auth::guard('web')->logout();
+        $logoutResponse = $this->_authService->logout();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        if ($logoutResponse->isError()) {
+            return $this->getErrorJsonResponse($logoutResponse);
+        }
 
-        return response()->noContent();
+        return $this->getSuccessLatestJsonResponse($logoutResponse);
     }
 }
