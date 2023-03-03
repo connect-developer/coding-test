@@ -16,6 +16,7 @@ class RegisterResource extends JsonResource
     {
         $resource = [
             'id' => $this->id,
+            'username' => $this->username,
             'email' => $this->email,
             $this->mergeWhen($request->route('path') === 'company', [
                 'company' => [

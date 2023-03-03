@@ -4,12 +4,12 @@ namespace App\Services;
 
 use App\Core\Response\GenericObjectResponse;
 use App\Enums\HttpResponseType;
-use App\Exceptions\ResponseNotFoundException;
 use App\Http\Requests\User\RegisterRequest;
 use App\Repositories\Contracts\IUserRepository;
 use App\Services\Contracts\IUserService;
 use Exception;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -59,6 +59,30 @@ class UserService extends BaseService implements IUserService
                 $ex->getMessage());
 
             Log::error("Invalid register", $response->getMessageResponseError());
+        }
+
+        return $response;
+    }
+
+    public function userLogged(Request $request): GenericObjectResponse
+    {
+        $response = new GenericObjectResponse();
+
+        try {
+            $response = $this->setGenericObjectResponse($response,
+                $request->user(),
+                'SUCCESS',
+                HttpResponseType::SUCCESS);
+
+            Log::info("Get user logged success");
+
+        } catch (Exception $ex) {
+            $response = $this->setMessageResponse($response,
+                'ERROR',
+                HttpResponseType::INTERNAL_SERVER_ERROR,
+                $ex->getMessage());
+
+            Log::error("Invalid get user logged", $response->getMessageResponseError());
         }
 
         return $response;
