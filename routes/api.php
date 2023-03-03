@@ -21,6 +21,7 @@ Route::group(['prefix' => '{path}', 'middleware' => 'admin.company.path'], funct
 
     Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::post('/logout', [LoginController::class, "logout"])->name('action.logout');
+        Route::post('/me', [UserController::class, "me"])->name('action.me');
     });
 });
 

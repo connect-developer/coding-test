@@ -31,6 +31,12 @@ class UserController extends ApiBaseController
 
     public function me(Request $request)
     {
-        return new UserResource($request->user());
+        $meResponse = $this->_userService->userLogged($request);
+
+        if ($meResponse->isError()) {
+            return $this->getErrorJsonResponse($meResponse);
+        }
+
+        return $this->getObjectJsonResponse($meResponse, UserResource::class);
     }
 }

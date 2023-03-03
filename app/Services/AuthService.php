@@ -12,8 +12,6 @@ use App\Repositories\Contracts\IUserRepository;
 use App\Services\Contracts\IAuthService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Laravel\Passport\RefreshToken;
-use Laravel\Passport\Token;
 
 class AuthService extends BaseService implements IAuthService
 {
