@@ -2,18 +2,19 @@
 
 namespace App\Services;
 
+
+use App\Core\Response\BasicResponse;
 use App\Core\Response\GenericObjectResponse;
 use App\Enums\HttpResponseType;
+use App\Exceptions\ResponseInvalidLoginAttemptException;
 use App\Exceptions\ResponseNotFoundException;
-use App\Http\Requests\User\RegisterRequest;
+use App\Http\Requests\Auth\LoginRequest;
 use App\Repositories\Contracts\IUserRepository;
-use App\Services\Contracts\IUserService;
-use Exception;
-use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\DB;
+use App\Services\Contracts\IAuthService;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
-class UserService extends BaseService implements IUserService
+class AuthService extends BaseService implements IAuthService
 {
     public IUserRepository $_userRepository;
 
@@ -22,7 +23,7 @@ class UserService extends BaseService implements IUserService
         $this->_userRepository = $userRepository;
     }
 
-    public function register(RegisterRequest $request): GenericObjectResponse
+    public function login(LoginRequest $request): GenericObjectResponse
     {
         $response = new GenericObjectResponse();
 
@@ -32,19 +33,22 @@ class UserService extends BaseService implements IUserService
                 throw new ResponseNotFoundException('Not found');
             }
 
-            DB::beginTransaction();
+            $identity = (filter_var($request->identity, FILTER_VALIDATE_EMAIL)) ? 'email' : 'username';
 
-            $register = $this->_userRepository->register($request);
+            if (!Auth::attempt([$identity => $request->identity, "password" => $request->password])) {
+                throw new ResponseInvalidLoginAttemptException('Login invalid');
+            }
 
-            DB::commit();
+            $user = Auth::user();
+            $token = $user->createToken('token')->accessToken
+                ->token;
 
             $response = $this->setGenericObjectResponse($response,
-                $register,
+                ['token' => $token],
                 'SUCCESS',
                 HttpResponseType::SUCCESS);
 
-            Log::info("User register success");
-
+            Log::info("User $user->id: Login succeed");
         } catch (ResponseNotFoundException $ex) {
             $response = $this->setMessageResponse($response,
                 'ERROR',
@@ -53,27 +57,29 @@ class UserService extends BaseService implements IUserService
 
             Log::error("Invalid api endpoint url", $response->getMessageResponseError());
 
-        } catch (QueryException $ex) {
-            DB::rollBack();
-
+        } catch (ResponseInvalidLoginAttemptException $ex) {
             $response = $this->setMessageResponse($response,
-                'ERROR',
-                HttpResponseType::BAD_REQUEST,
+                "INFO",
+                HttpResponseType::UNAUTHORIZED,
                 $ex->getMessage());
 
-            Log::error("Invalid validation", $response->getMessageResponseError());
-
-        } catch (Exception $ex) {
-            DB::rollBack();
-
+            Log::error("Invalid login attempt", [$response->getMessageResponseError()]);
+        } catch (\Exception $ex) {
             $response = $this->setMessageResponse($response,
                 'ERROR',
-                HttpResponseType::INTERNAL_SERVER_ERROR,
+                HttpResponseType::UNAUTHORIZED,
                 $ex->getMessage());
 
-            Log::error("Invalid register", $response->getMessageResponseError());
+            Log::error("Invalid login", [$response->getMessageResponseError()]);
         }
 
         return $response;
     }
+
+    public function logout(string $email): BasicResponse
+    {
+        // TODO: Implement logout() method.
+    }
+
+
 }

@@ -14,8 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('created_by');
-            $table->string('updated_by')->nullable();
+            $table->softDeletes();
         });
     }
 
