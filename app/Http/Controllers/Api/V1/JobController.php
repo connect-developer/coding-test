@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\JobStatus;
-use App\Http\Requests\JobStoreRequest;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Job\JobStoreRequest;
 use App\Http\Resources\JobResource;
 use App\Models\Job;
 use Illuminate\Http\Request;
