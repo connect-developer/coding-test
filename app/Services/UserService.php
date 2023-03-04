@@ -48,7 +48,7 @@ class UserService extends BaseService implements IUserService
                 HttpResponseType::BAD_REQUEST,
                 $ex->getMessage());
 
-            Log::error("Invalid validation", $response->getMessageResponseError());
+            Log::error("Invalid query", $response->getMessageResponseError());
 
         } catch (Exception $ex) {
             DB::rollBack();

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\JobController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +23,22 @@ Route::group(['prefix' => '{path}', 'middleware' => 'admin.company.path'], funct
     Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::post('/logout', [LoginController::class, "logout"])->name('action.logout');
         Route::post('/me', [UserController::class, "me"])->name('action.me');
+
+        Route::group(['prefix' => 'job'], function () {
+            Route::group(['prefix' => 'list/all'], function () {
+                Route::get('/', [JobController::class, "jobListAll"])->name('action.job.all');
+                Route::post('/search', [JobController::class, "jobListAllSearch"])->name('action.job.all.search');
+                Route::post('/search/page', [JobController::class, "jobListAllSearchPage"])->name('action.job.all.search.page');
+            });
+        });
+    });
+});
+
+Route::group(['prefix' => 'job'], function () {
+    Route::group(['prefix' => 'list/all'], function () {
+        Route::get('/', [JobController::class, "jobListAll"])->name('action.job.all');
+        Route::post('/search', [JobController::class, "jobListAllSearch"])->name('action.job.all.search');
+        Route::post('/search/page', [JobController::class, "jobListAllSearchPage"])->name('action.job.all.search.page');
     });
 });
 
