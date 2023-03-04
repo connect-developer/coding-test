@@ -37,7 +37,7 @@ class AuthService extends BaseService implements IAuthService
             $token = $user->createToken('auth_token')->plainTextToken;
 
             $response = $this->setGenericObjectResponse($response,
-                ['access_token' => $token, 'token_type' => 'Bearer'],
+                ['email' => $user->email, 'role' => $user->role, 'access_token' => $token, 'token_type' => 'Bearer'],
                 'SUCCESS',
                 HttpResponseType::SUCCESS);
 

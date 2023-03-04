@@ -21,8 +21,9 @@ class UserRepository extends BaseRepository implements IUserRepository
     public function register(RegisterRequest $request): BaseEntity
     {
         $user = new $this->_user([
-            "username" => $request->username,
             "email" => $request->email,
+            "username" => $request->username,
+            "role" => ($request->route('path') === 'company') ? "COMPANY" : "ADMIN",
             "password" => bcrypt($request->password)
         ]);
 

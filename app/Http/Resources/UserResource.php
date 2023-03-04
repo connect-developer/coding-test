@@ -16,8 +16,9 @@ class UserResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'username' => $this->username,
             'email' => $this->email,
+            'username' => $this->username,
+            'role' => $this->role,
             $this->mergeWhen($request->route('path') === 'company', [
                 'company' => [
                     'name' => $this->company ? $this->company->name : null,

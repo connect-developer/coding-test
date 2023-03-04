@@ -24,7 +24,7 @@ interface IJobService
 
     public function storeJob(JobStoreRequest $request): GenericObjectResponse;
 
-    public function updateJob(JobStoreRequest $request): GenericObjectResponse;
+    public function updateJob(int $id, JobStoreRequest $request): GenericObjectResponse;
 
     public function destroyJob(string $id): BasicResponse;
 }

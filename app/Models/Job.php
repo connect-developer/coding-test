@@ -10,6 +10,15 @@ class Job extends BaseEntity
 {
     use HasFactory;
 
+    protected $fillable = [
+        'company_id',
+        'job_title_id',
+        'description',
+        'status',
+        'created_by',
+        'updated_by'
+    ];
+
     protected $casts = [
         'status' => JobStatus::class,
     ];

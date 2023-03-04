@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::group(['prefix' => '{path}', 'middleware' => 'admin.company.path'], function () {
+Route::group(['prefix' => '/{path}', 'middleware' => 'admin.company.path'], function () {
     Route::post('/register', [UserController::class, 'register'])->name('action.register');
     Route::post('/login', [LoginController::class, 'login'])->name('action.login');
 
@@ -24,18 +24,23 @@ Route::group(['prefix' => '{path}', 'middleware' => 'admin.company.path'], funct
         Route::post('/logout', [LoginController::class, "logout"])->name('action.logout');
         Route::post('/me', [UserController::class, "me"])->name('action.me');
 
-        Route::group(['prefix' => 'job'], function () {
-            Route::group(['prefix' => 'list/all'], function () {
+        Route::group(['prefix' => '/job'], function () {
+            Route::group(['prefix' => '/list/all'], function () {
                 Route::get('/', [JobController::class, "jobListAll"])->name('action.job.all');
                 Route::post('/search', [JobController::class, "jobListAllSearch"])->name('action.job.all.search');
                 Route::post('/search/page', [JobController::class, "jobListAllSearchPage"])->name('action.job.all.search.page');
             });
+
+            Route::get('/{id}', [JobController::class, "jobShow"])->name('action.job.show');
+            Route::post('/create', [JobController::class, "jobCreate"])->name('action.job.create');
+            Route::put('/update/{id}', [JobController::class, "jobUpdate"])->name('action.job.update');
+            Route::delete('/delete/{id}', [JobController::class, "jobDelete"])->name('action.job.delete');
         });
     });
 });
 
-Route::group(['prefix' => 'job'], function () {
-    Route::group(['prefix' => 'list/all'], function () {
+Route::group(['prefix' => '/job'], function () {
+    Route::group(['prefix' => '/list/all'], function () {
         Route::get('/', [JobController::class, "jobListAll"])->name('action.job.all');
         Route::post('/search', [JobController::class, "jobListAllSearch"])->name('action.job.all.search');
         Route::post('/search/page', [JobController::class, "jobListAllSearchPage"])->name('action.job.all.search.page');

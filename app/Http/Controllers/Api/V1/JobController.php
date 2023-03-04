@@ -5,13 +5,12 @@ namespace App\Http\Controllers\Api\V1;
 use App\Core\Request\ListDataRequest;
 use App\Core\Request\ListSearchDataRequest;
 use App\Core\Request\ListSearchPageDataRequest;
-use App\Enums\JobStatus;
 use App\Http\Controllers\Api\ApiBaseController;
 use App\Http\Requests\Job\JobStoreRequest;
 use App\Http\Resources\JobResource;
+use App\Http\Resources\JobResourceCollection;
 use App\Models\Job;
 use App\Services\Contracts\IJobService;
-use Illuminate\Http\Request;
 
 class JobController extends ApiBaseController
 {
@@ -30,7 +29,7 @@ class JobController extends ApiBaseController
             return $this->getErrorJsonResponse($jobs);
         }
 
-        return $this->getListJsonResponse($jobs, JobResource::class);
+        return $this->getListJsonResponse($jobs, JobResourceCollection::class);
     }
 
     public function jobListAllSearch(ListSearchDataRequest $request)
@@ -41,7 +40,7 @@ class JobController extends ApiBaseController
             return $this->getErrorJsonResponse($jobs);
         }
 
-        return $this->getListSearchJsonResponse($jobs, JobResource::class);
+        return $this->getListSearchJsonResponse($jobs, JobResourceCollection::class);
     }
 
     public function jobListAllSearchPage(ListSearchPageDataRequest $request)
@@ -52,81 +51,50 @@ class JobController extends ApiBaseController
             return $this->getErrorJsonResponse($jobs);
         }
 
-        return $this->getListSearchPageJsonResponse($jobs, JobResource::class);
+        return $this->getListSearchPageJsonResponse($jobs, JobResourceCollection::class);
     }
 
-
-    /**
-     * Show a opening job to applicants.
-     *
-     * @param integer $id
-     * @return void
-     */
-    public function show(int $id)
+    public function jobShow(string $path, int $id)
     {
-        $job = Job::where('status', JobStatus::Open)->find($id);
-        return new JobResource($job);
-    }
-    
+        $job = $this->_jobService->getJob($id);
 
-    /**
-     * Show a opening job to applicants by admin.
-     *
-     * @param integer $id
-     * @return void
-     */
-    public function showAdmin(int $id)
-    {
-        $job = Job::find($id);
-        return new JobResource($job);
+        if ($job->isError()) {
+            return $this->getErrorJsonResponse($job);
+        }
+
+        return $this->getObjectJsonResponse($job, JobResource::class);
     }
 
-    /**
-     * Register a job by admin.
-     *
-     * @param JobStoreRequest $request
-     * @return void
-     */
-    public function create(JobStoreRequest $request)
+    public function jobCreate(JobStoreRequest $request)
     {
-        $job = new Job;
-        $job->company_id = $request->company_id;
-        $job->job_title_id = $request->job_title_id;
-        $job->description = $request->description;
-        $job->status = JobStatus::fromKey($request->status);
-        $job->save();
-        return new JobResource($job);
+        $storeJobResponse = $this->_jobService->storeJob($request);
+
+        if ($storeJobResponse->isError()) {
+            return $this->getErrorJsonResponse($storeJobResponse);
+        }
+
+        return $this->getObjectJsonResponse($storeJobResponse, JobResource::class);
     }
 
-    /**
-     * Update job by admin.
-     *
-     * @param JobStoreRequest $request
-     * @param integer $id
-     * @return void
-     */
-    public function update(JobStoreRequest $request, int $id)
+    public function jobUpdate(string $path, int $id, JobStoreRequest $request)
     {
-        $job = Job::find($id);
-        $job->company_id = $request->company_id;
-        $job->job_title_id = $request->job_title_id;
-        $job->description = $request->description;
-        $job->status = JobStatus::fromKey($request->status);
-        $job->save();
-        return new JobResource($job);
+        $updateJobResponse = $this->_jobService->updateJob($id, $request);
+
+        if ($updateJobResponse->isError()) {
+            return $this->getErrorJsonResponse($updateJobResponse);
+        }
+
+        return $this->getObjectJsonResponse($updateJobResponse, JobResource::class);
     }
 
-    /**
-     * Delete job by admin.
-     *
-     * @param JobStoreRequest $request
-     * @param integer $id
-     * @return void
-     */
-    public function delete(int $id)
+    public function jobDelete(string $path, int $id): string
     {
-        $job = Job::find($id);
-        $job->delete();
-        return response()->noContent();
+        $deleteJobResponse = $this->_jobService->destroyJob($id);
+
+        if ($deleteJobResponse->isError()) {
+            return $this->getErrorJsonResponse($deleteJobResponse);
+        }
+
+        return $this->getSuccessLatestJsonResponse($deleteJobResponse);
     }
 }
