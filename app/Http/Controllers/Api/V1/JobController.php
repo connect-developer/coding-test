@@ -77,23 +77,18 @@ class JobController extends ApiBaseController
         return $this->getObjectJsonResponse($storeJobResponse, JobResource::class);
     }
 
-
-    /**
-     * Register a job by admin.
-     *
-     * @param JobStoreRequest $request
-     * @return void
-     */
-    public function create(JobStoreRequest $request)
+    public function jobUpdate(string $path, int $id, JobStoreRequest $request)
     {
-        $job = new Job;
-        $job->company_id = $request->company_id;
-        $job->job_title_id = $request->job_title_id;
-        $job->description = $request->description;
-        $job->status = JobStatus::fromKey($request->status);
-        $job->save();
-        return new JobResource($job);
+        $updateJobResponse = $this->_jobService->updateJob($id, $request);
+
+        if ($updateJobResponse->isError()) {
+            return $this->getErrorJsonResponse($updateJobResponse);
+        }
+
+        return $this->getObjectJsonResponse($updateJobResponse, JobResource::class);
     }
+
+
 
     /**
      * Update job by admin.

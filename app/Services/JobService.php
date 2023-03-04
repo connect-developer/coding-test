@@ -212,9 +212,60 @@ class JobService extends BaseService implements IJobService
         return $response;
     }
 
-    public function updateJob(JobStoreRequest $request): GenericObjectResponse
+    public function updateJob(int $id, JobStoreRequest $request): GenericObjectResponse
     {
-        // TODO: Implement updateJob() method.
+        $response = new GenericObjectResponse();
+
+        DB::beginTransaction();
+
+        try {
+            $job = $this->_jobRepository->updateJob($id, $request);
+
+            DB::commit();
+
+            if (!$job) {
+                throw new ResponseNotFoundException('Job not found');
+            }
+
+            $response = $this->setGenericObjectResponse($response,
+                $job,
+                'SUCCESS',
+                HttpResponseType::SUCCESS);
+
+            Log::info("Job updated");
+
+        } catch(QueryException $ex) {
+            DB::rollBack();
+
+            $response = $this->setMessageResponse($response,
+                'ERROR',
+                HttpResponseType::INTERNAL_SERVER_ERROR,
+                $ex->getMessage());
+
+            Log::error("Invalid query", $response->getMessageResponseError());
+
+        } catch (ResponseNotFoundException $ex) {
+            DB::rollBack();
+
+            $response = $this->setMessageResponse($response,
+                'ERROR',
+                HttpResponseType::NOT_FOUND,
+                $ex->getMessage());
+
+            Log::error("Invalid job not found", $response->getMessageResponseError());
+
+        } catch (Exception $ex) {
+            DB::rollBack();
+
+            $response = $this->setMessageResponse($response,
+                'ERROR',
+                HttpResponseType::INTERNAL_SERVER_ERROR,
+                $ex->getMessage());
+
+            Log::error("Invalid job update", $response->getMessageResponseError());
+        }
+
+        return $response;
     }
 
     public function destroyJob(string $id): BasicResponse
