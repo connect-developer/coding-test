@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use App\Core\Entity\BaseEntity;
 use App\Enums\JobStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
-class Job extends Model
+class Job extends BaseEntity
 {
     use HasFactory;
 
@@ -16,7 +16,7 @@ class Job extends Model
 
     public function company()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(Company::class, 'company_id');
     }
 
     public function jobTitle()

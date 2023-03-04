@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\JobController;
-use App\Http\Controllers\LoginController;
+use App\Http\Controllers\Api\V1\JobController;
+use App\Http\Controllers\Api\V1\UserController;
+use App\Http\Controllers\Api\V1\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,21 +16,31 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['guest'])->prefix('/admin')->group(function () {
-    Route::post('login', [LoginController::class, 'login']);
+Route::group(['prefix' => '{path}', 'middleware' => 'admin.company.path'], function () {
+    Route::post('/register', [UserController::class, 'register'])->name('action.register');
+    Route::post('/login', [LoginController::class, 'login'])->name('action.login');
+
+    Route::group(['middleware' => 'auth:sanctum'], function () {
+        Route::post('/logout', [LoginController::class, "logout"])->name('action.logout');
+        Route::post('/me', [UserController::class, "me"])->name('action.me');
+
+        Route::group(['prefix' => 'job'], function () {
+            Route::group(['prefix' => 'list/all'], function () {
+                Route::get('/', [JobController::class, "jobListAll"])->name('action.job.all');
+                Route::post('/search', [JobController::class, "jobListAllSearch"])->name('action.job.all.search');
+                Route::post('/search/page', [JobController::class, "jobListAllSearchPage"])->name('action.job.all.search.page');
+            });
+        });
+    });
 });
 
-Route::middleware('auth:sanctum')->prefix('/admin')->group(function () {
-    Route::post('logout', [LoginController::class, 'logout']);
-
-    Route::get('me', [AdminController::class, 'me']);
+Route::group(['prefix' => 'job'], function () {
+    Route::group(['prefix' => 'list/all'], function () {
+        Route::get('/', [JobController::class, "jobListAll"])->name('action.job.all');
+        Route::post('/search', [JobController::class, "jobListAllSearch"])->name('action.job.all.search');
+        Route::post('/search/page', [JobController::class, "jobListAllSearchPage"])->name('action.job.all.search.page');
+    });
 });
 
-Route::get('/jobs', [JobController::class, 'view'])->name('job.view');
-Route::get('/jobs/{id}', [JobController::class, 'show'])->name('job.show');
 
-Route::get('/admin/jobs', [JobController::class, 'viewByAdmin'])->name('job.view.admin');
-Route::get('/admin/jobs/{id}', [JobController::class, 'showByAdmin'])->name('job.show.admin');
-Route::post('/admin/jobs', [JobController::class, 'create'])->name('job.create');
-Route::put('/admin/jobs/{id}', [JobController::class, 'update'])->name('job.update');
-Route::delete('/admin/jobs/{id}', [JobController::class, 'delete'])->name('job.delete');
+
