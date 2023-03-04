@@ -2,10 +2,15 @@
 
 namespace App\Models;
 
+use App\Core\Entity\BaseEntity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
-class JobTitle extends Model
+class JobTitle extends BaseEntity
 {
     use HasFactory;
+
+    public function jobs()
+    {
+        return $this->hasMany(Job::class, 'job_title_id');
+    }
 }

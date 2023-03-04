@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class AdminResource extends JsonResource
+class RegisterResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -14,11 +14,20 @@ class AdminResource extends JsonResource
      */
     public function toArray($request)
     {
-        return [
+        $resource = [
             'id' => $this->id,
             'email' => $this->email,
+            'username' => $this->username,
+            'role' => $this->role,
+            $this->mergeWhen($request->route('path') === 'company', [
+                'company' => [
+                    'name' => $this->company ? $this->company->name : null
+                ]
+            ]),
             'created_at' => $this->created_at->timestamp,
             'updated_at' => $this->updated_at->timestamp,
         ];
+
+        return $resource;
     }
 }
