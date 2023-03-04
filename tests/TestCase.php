@@ -15,8 +15,5 @@ abstract class TestCase extends BaseTestCase
     public function setUp(): void
     {
         parent::setUp();
-
-        Company::factory()->count(10)->create();
-        JobTitle::factory()->count(10)->create();
     }
 }

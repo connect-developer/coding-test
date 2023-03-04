@@ -30,6 +30,13 @@ return new class extends Migration
      */
     public function down()
     {
-        //
+        Schema::table('companies', function (Blueprint $table) {
+            $table->string('about')->nullable(false)
+                ->change();
+            $table->string('address')->nullable(false)
+                ->change();
+            $table->string('phone_number')->nullable(false)
+                ->change();
+        });
     }
 };

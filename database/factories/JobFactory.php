@@ -21,11 +21,13 @@ class JobFactory extends Factory
     {
         $companyId = Company::all()->random(1)[0]->id;
         $jobTitleId = JobTitle::all()->random(1)[0]->id;
+
         return [
             'company_id' => $companyId,
             'job_title_id' => $jobTitleId,
             'description' => $this->faker->paragraphs(2, true),
             'status' => JobStatus::getRandomInstance(),
+            'created_by' => 'system'
         ];
     }
 
