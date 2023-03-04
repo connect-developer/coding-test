@@ -6,6 +6,7 @@ use App\Core\Request\AuditableRequest;
 use App\Enums\JobStatus;
 use App\Helpers\Common;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class JobStoreRequest extends FormRequest
 {
@@ -28,6 +29,10 @@ class JobStoreRequest extends FormRequest
 
     public function prepareForValidation()
     {
+        if (Auth::user()->role === "COMPANY") {
+            $this->merge(['company_id' => Auth::user()->company->id]);
+        }
+
         Common::setRequestAuthor($this, new AuditableRequest());
     }
 }

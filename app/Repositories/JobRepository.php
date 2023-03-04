@@ -186,10 +186,36 @@ class JobRepository extends BaseRepository implements IJobRepository
             "company_id" => $request->company_id,
             "job_title_id" => $request->job_title_id,
             "description" => $request->description,
-            "status" => 1
+            "status" => $request->status === "Open" ? JobStatus::Open : JobStatus::Closed
         ]);
 
         $this->setAuditableInformationFromRequest($job, $request);
+
+        $job->save();
+
+        return $job->fresh();
+    }
+
+    public function updateJob(int $id, JobStoreRequest $request): BaseEntity|null
+    {
+        $job = $this->model->where('id', $id);
+
+        if (Auth::user()->role === "COMPANY") {
+            $job = $job->where('company_id', Auth::user()->company->id);
+        }
+
+        $job = $job->get()->first();
+
+        if (!$job) {
+            return null;
+        }
+
+        $this->setAuditableInformationFromRequest($job, $request);
+
+        $job->company_id = $request->company_id;
+        $job->job_title_id = $request->job_title_id;
+        $job->description = $request->description;
+        $job->status = $request->status === "Open" ? JobStatus::Open : JobStatus::Closed;
 
         $job->save();
 
