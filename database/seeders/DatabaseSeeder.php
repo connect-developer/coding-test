@@ -36,8 +36,8 @@ class DatabaseSeeder extends Seeder
         User::create(['email' => 'admin@example.net', 'username' => 'admin', 'role' => 'ADMIN', 'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'created_by' => 'system']);
 
         User::factory()->count(10)->create();
-        Company::factory()->count(100)->create();
-        JobTitle::factory()->count(50)->create();
-        Job::factory()->count(1000)->create();
+        Company::factory()->count(10)->create();
+        JobTitle::factory()->count(10)->create();
+        Job::factory()->count(10)->create();
     }
 }

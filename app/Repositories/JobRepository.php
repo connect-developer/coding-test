@@ -90,40 +90,42 @@ class JobRepository extends BaseRepository implements IJobRepository
                 companies.name LIKE ?)", $this->searchJobByKeyword($keyword));
         }
 
-        if (count($request->filter) > 0) {
-            $filter = [];
+        if ($request->filter && is_array($request->filter)) {
+            if (count($request->filter) > 0) {
+                $filter = [];
 
-            foreach ($request->filter as $value) {
+                foreach ($request->filter as $value) {
+                    if (!Auth::user()) {
+                        $filter[] = ["status", "=", 1];
+                    } else {
+                        if (Auth::user()->role === 'COMPANY') {
+                            $filter[] = ["status", "=", 1];
+                        } else {
+                            if ($value[0] === 'status') {
+                                $filter[] = $value;
+                            }
+                        }
+                    }
+
+                    if ($value[0] === 'company_id') {
+                        $filter[] = $value;
+                    }
+
+                    if ($value[0] === 'job_title_id') {
+                        $filter[] = $value;
+                    }
+                }
+
+                $model = $model->where($filter);
+            } else {
                 if (!Auth::user()) {
                     $filter[] = ["status", "=", 1];
                 } else {
                     if (Auth::user()->role === 'COMPANY') {
                         $filter[] = ["status", "=", 1];
-                    } else {
-                        if ($value[0] === 'status') {
-                            $filter[] = $value;
-                        }
+
+                        $model = $model->where($filter);
                     }
-                }
-
-                if ($value[0] === 'company_id') {
-                    $filter[] = $value;
-                }
-
-                if ($value[0] === 'job_title_id') {
-                    $filter[] = $value;
-                }
-            }
-
-            $model = $model->where($filter);
-        } else {
-            if (!Auth::user()) {
-                $filter[] = ["status", "=", 1];
-            } else {
-                if (Auth::user()->role === 'COMPANY') {
-                    $filter[] = ["status", "=", 1];
-
-                    $model = $model->where($filter);
                 }
             }
         }
@@ -148,40 +150,42 @@ class JobRepository extends BaseRepository implements IJobRepository
                 companies.name LIKE ?)", $this->searchJobByKeyword($keyword));
         }
 
-        if (count($request->filter) > 0) {
-            $filter = [];
+        if ($request->filter && is_array($request->filter)) {
+            if (count($request->filter) > 0) {
+                $filter = [];
 
-            foreach ($request->filter as $value) {
+                foreach ($request->filter as $value) {
+                    if (!Auth::user()) {
+                        $filter[] = ["status", "=", 1];
+                    } else {
+                        if (Auth::user()->role === 'COMPANY') {
+                            $filter[] = ["status", "=", 1];
+                        } else {
+                            if ($value[0] === 'status') {
+                                $filter[] = $value;
+                            }
+                        }
+                    }
+
+                    if ($value[0] === 'company_id') {
+                        $filter[] = $value;
+                    }
+
+                    if ($value[0] === 'job_title_id') {
+                        $filter[] = $value;
+                    }
+                }
+
+                $model = $model->where($filter);
+            } else {
                 if (!Auth::user()) {
                     $filter[] = ["status", "=", 1];
                 } else {
                     if (Auth::user()->role === 'COMPANY') {
                         $filter[] = ["status", "=", 1];
-                    } else {
-                        if ($value[0] === 'status') {
-                            $filter[] = $value;
-                        }
+
+                        $model = $model->where($filter);
                     }
-                }
-
-                if ($value[0] === 'company_id') {
-                    $filter[] = $value;
-                }
-
-                if ($value[0] === 'job_title_id') {
-                    $filter[] = $value;
-                }
-            }
-
-            $model = $model->where($filter);
-        } else {
-            if (!Auth::user()) {
-                $filter[] = ["status", "=", 1];
-            } else {
-                if (Auth::user()->role === 'COMPANY') {
-                    $filter[] = ["status", "=", 1];
-
-                    $model = $model->where($filter);
                 }
             }
         }
@@ -246,7 +250,7 @@ class JobRepository extends BaseRepository implements IJobRepository
         return $job->fresh();
     }
 
-    public function deleteJob(int $id)
+    public function deleteJob(int $id): BaseEntity|null
     {
         $job = $this->model->where('id', $id);
 
@@ -260,7 +264,9 @@ class JobRepository extends BaseRepository implements IJobRepository
             return null;
         }
 
-        return $job->delete();
+        $job->delete();
+
+        return $job->fresh();
     }
 
     private function searchJobByKeyword(string $keyword) {

@@ -2,289 +2,663 @@
 
 namespace Tests\Feature\Api;
 
+use App\Enums\JobStatus;
+use App\Models\Company;
+use App\Models\JobTitle;
 use App\Models\User;
 use App\Models\Job;
 use Tests\TestCase;
 
 class JobTest extends TestCase
 {
-    private $admin;
-
-    public function setUp(): void
+    // All
+    public function test_get_all_jobs_as_admin_success()
     {
-        parent::setUp();
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
 
-        $this->admin = User::factory()->create();
+        $user = User::all()->first();
 
-        Job::factory()->count(25)->open()->create();
-        Job::factory()->count(30)->closed()->create();
+        $response = $this->actingAs($user, 'sanctum')
+        ->withHeaders([
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json'
+        ])->get(route('action.job.all', ['path' => 'admin']));
+
+        $response->assertOk()
+            ->assertJsonStructure(['datas']);
     }
 
-    public function test_view()
+    public function test_get_all_jobs_as_admin_invalid()
     {
-        $perPage = 12;
-        $page = 1;
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
 
-        $response = $this->json('GET', route('job.view'), [
-            'per_page' => $perPage,
-            'page' => $page,
+        $response = $this->withHeaders([
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json'
+        ])->get(route('action.job.all', ['path' => 'admin']));
+
+        $response->assertStatus(401)
+            ->assertJson(['message' => 'Unauthenticated.']);
+    }
+
+    public function test_get_all_jobs_as_company_success()
+    {
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $user = User::all()->first();
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json'
+            ])->get(route('action.job.all', ['path' => 'company']));
+
+        $response->assertOk()
+            ->assertJsonStructure(['datas']);
+    }
+
+    public function test_get_all_jobs_as_company_invalid()
+    {
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $response = $this->withHeaders([
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json'
+        ])->get(route('action.job.all', ['path' => 'company']));
+
+        $response->assertStatus(401)
+            ->assertJson(['message' => 'Unauthenticated.']);
+    }
+
+    public function test_get_all_jobs_as_guest_success()
+    {
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $user = User::all()->first();
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json'
+            ])->get(route('action.guest.job.all'));
+
+        $response->assertOk()
+            ->assertJsonStructure(['datas']);
+    }
+
+
+    // All Search
+    public function test_get_all_jobs_search_as_admin_success()
+    {
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $user = User::all()->first();
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json'
+            ])->post(route('action.job.all.search', ['path' => 'admin']), [
+                "search" => null,
+                "order_by" => "id",
+                "sort" => "DESC",
+                "filter" => null
+            ]);
+
+        $response->assertOk()
+            ->assertJsonStructure(['datas']);
+    }
+
+    public function test_get_all_jobs_search_as_admin_invalid()
+    {
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $response = $this->withHeaders([
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json'
+        ])->post(route('action.job.all.search', ['path' => 'admin']), [
+            "search" => null,
+            "orderBy" => "id",
+            "sort" => "asc",
+            "filter"=> null
         ]);
 
-        $response
-            ->assertOk()
-            ->assertJson([
-                'meta' => [
-                    'per_page' => $perPage,
-                    'current_page' => $page,
-                    'total' => 25,
-                ],
+        $response->assertStatus(401)
+            ->assertJson(['message' => 'Unauthenticated.']);
+    }
+
+    public function test_get_all_jobs_search_as_company_success()
+    {
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $user = User::all()->first();
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json'
+            ])->post(route('action.job.all.search', ['path' => 'company']), [
+                "search" => null,
+                "order_by" => "id",
+                "sort" => "DESC",
+                "filter" => null
             ]);
+
+        $response->assertOk()
+            ->assertJsonStructure(['datas']);
     }
 
-    public function test_show()
+    public function test_get_all_jobs_search_as_company_invalid()
     {
-        $job = Job::factory()->open()->create();
-        $response = $this->json('GET', route('job.show', ['id' => $job->id]));
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
 
-        $response
-            ->assertOk()
-            ->assertJson([
-                'data' => [
-                    'id' => $job->id,
-                ],
-            ]);
-    }
-
-    public function test_show_not_found()
-    {
-        $job = Job::factory()->closed()->create();
-        $response = $this->json('GET', route('job.show', ['id' => $job->id]));
-
-        $response->assertNotFound();
-    }
-
-    public function test_create()
-    {
-        $job = Job::factory()->make();
-        $response = $this->actingAs($this->admin, 'web')->json('POST', route('job.create'), [
-            'company_id' => $job->company_id,
-            'job_title_id' => $job->job_title_id,
-            'description' => $job->description,
-            'status' => $job->status->key,
+        $response = $this->withHeaders([
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json'
+        ])->post(route('action.job.all.search', ['path' => 'company']), [
+            "search" => null,
+            "orderBy" => "id",
+            "sort" => "asc",
+            "filter"=> null
         ]);
 
-        $response
-            ->assertCreated()
-            ->assertJson([
-                'data' => [
-                    'company' => [
-                        'id' => $job->company_id,
-                    ],
-                    'job_title' => [
-                        'id' => $job->job_title_id,
-                    ],
-                    'description' => $job->description,
-                    'status' => $job->status->key,
-                ],
-            ]);
+        $response->assertStatus(401)
+            ->assertJson(['message' => 'Unauthenticated.']);
     }
 
-    public function test_create_unauthenticated()
+    public function test_get_all_jobs_search_as_guest_success()
     {
-        $this->assertGuest();
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
 
-        $job = Job::factory()->make();
-        $response = $this->json('POST', route('job.create'), [
-            'company_id' => $job->company_id,
-            'job_title_id' => $job->job_title_id,
-            'description' => $job->description,
-            'status' => $job->status->key,
+        $user = User::all()->first();
+
+        $response = $this->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json'
+            ])->post(route('action.guest.job.all.search'), [
+                "search" => null,
+                "order_by" => "id",
+                "sort" => "DESC",
+                "filter" => null
+            ]);
+
+        $response->assertOk()
+            ->assertJsonStructure(['datas']);
+    }
+
+    // All Search Page
+    public function test_get_all_jobs_search_page_as_admin_success()
+    {
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $user = User::all()->first();
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json'
+            ])->post(route('action.job.all.search.page', ['path' => 'admin']), [
+                "search" => null,
+                "order_by" => "id",
+                "sort" => "DESC",
+                "filter" => null
+            ]);
+
+        $response->assertOk()
+            ->assertJsonStructure(['datas']);
+    }
+
+    public function test_get_all_jobs_search_page_as_admin_invalid()
+    {
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $response = $this->withHeaders([
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json'
+        ])->post(route('action.job.all.search.page', ['path' => 'admin']), [
+            "search" => null,
+            "orderBy" => "id",
+            "sort" => "asc",
+            "filter"=> null
         ]);
 
-        $response->assertUnauthorized();
+        $response->assertStatus(401)
+            ->assertJson(['message' => 'Unauthenticated.']);
     }
 
-    public function test_create_company_id_failure()
+    public function test_get_all_jobs_search_page_as_company_success()
     {
-        $this
-            ->actingAs($this->admin, 'web')
-            ->json('POST', route('job.create'), [
-                'company_id' => null,
-            ])
-            ->assertInvalid(['company_id']);
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
 
-        $this
-            ->actingAs($this->admin, 'web')
-            ->json('POST', route('job.create'), [
-                'company_id' => 99999999,
-            ])
-            ->assertInvalid(['company_id']);
+        $user = User::all()->first();
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json'
+            ])->post(route('action.job.all.search.page', ['path' => 'company']), [
+                "search" => null,
+                "order_by" => "id",
+                "sort" => "DESC",
+                "filter" => null
+            ]);
+
+        $response->assertOk()
+            ->assertJsonStructure(['datas']);
     }
 
-    public function test_create_job_title_id_failure()
+    public function test_get_all_jobs_search_page_as_company_invalid()
     {
-        $this
-            ->actingAs($this->admin, 'web')
-            ->json('POST', route('job.create'), [
-                'job_title_id' => null,
-            ])
-            ->assertInvalid(['job_title_id']);
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
 
-        $this
-            ->actingAs($this->admin, 'web')
-            ->json('POST', route('job.create'), [
-                'job_title_id' => 99999999,
-            ])
-            ->assertInvalid(['job_title_id']);
-    }
-
-    public function test_create_description_failure()
-    {
-        $this
-            ->actingAs($this->admin, 'web')
-            ->json('POST', route('job.create'), [
-                'description' => null,
-            ])
-            ->assertInvalid(['description']);
-
-        $this
-            ->actingAs($this->admin, 'web')
-            ->json('POST', route('job.create'), [
-                'description' => $this->faker->realTextBetween(20001, 20100),
-            ])
-            ->assertInvalid(['description']);
-    }
-
-    public function test_create_status_failure()
-    {
-        $this
-            ->actingAs($this->admin, 'web')
-            ->json('POST', route('job.create'), [
-                'status' => null,
-            ])
-            ->assertInvalid(['status']);
-
-        $this
-            ->actingAs($this->admin, 'web')
-            ->json('POST', route('job.create'), [
-                'status' => 'Scheduled',
-            ])
-            ->assertInvalid(['status']);
-    }
-
-    public function test_update()
-    {
-        $job = Job::factory()->create();
-        $fake = Job::factory()->make();
-        $response = $this->actingAs($this->admin, 'web')->json('PUT', route('job.update', ['id' => $job->id]), [
-            'company_id' => $fake->company_id,
-            'job_title_id' => $fake->job_title_id,
-            'description' => $fake->description,
-            'status' => $fake->status->key,
+        $response = $this->withHeaders([
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json'
+        ])->post(route('action.job.all.search.page', ['path' => 'company']), [
+            "search" => null,
+            "orderBy" => "id",
+            "sort" => "asc",
+            "filter"=> null
         ]);
 
-        $response
-            ->assertOk()
-            ->assertJson([
-                'data' => [
-                    'company' => [
-                        'id' => $fake->company_id,
-                    ],
-                    'job_title' => [
-                        'id' => $fake->job_title_id,
-                    ],
-                    'description' => $fake->description,
-                    'status' => $fake->status->key,
-                ],
+        $response->assertStatus(401)
+            ->assertJson(['message' => 'Unauthenticated.']);
+    }
+
+    public function test_get_all_jobs_search_page_as_guest_success()
+    {
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $user = User::all()->first();
+
+        $response = $this->withHeaders([
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json'
+        ])->post(route('action.guest.job.all.search.page'), [
+            "search" => null,
+            "order_by" => "id",
+            "sort" => "DESC",
+            "filter" => null
+        ]);
+
+        $response->assertOk()
+            ->assertJsonStructure(['datas']);
+    }
+
+    public function test_get_job_as_admin_success()
+    {
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $users = User::all();
+        $userLogged = $users->first();
+
+        $jobs = Job::all();
+        $jobTarget = $jobs->toArray()[rand(0, $jobs->count() - 1)];
+
+        $response = $this->actingAs($userLogged, 'sanctum')
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json'
+            ])
+            ->get(route('action.job.show', ["path" => "admin", "id" => $jobTarget["id"]]));
+
+        $response->assertOk()
+            ->assertJsonStructure(['data']);
+    }
+
+    public function test_get_job_as_company_success()
+    {
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $users = User::all();
+        $userLogged = $users->first();
+
+        $jobs = Job::all();
+        $jobTarget = $jobs->toArray()[rand(0, $jobs->count() - 1)];
+
+        $response = $this->actingAs($userLogged, 'sanctum')
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json'
+            ])
+            ->get(route('action.job.show', ["path" => "company", "id" => $jobTarget["id"]]));
+
+        $response->assertOk()
+            ->assertJsonStructure(['data']);
+    }
+
+
+    public function test_get_job_as_admin_not_found()
+    {
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $users = User::all();
+        $userLogged = $users->first();
+
+        $jobs = Job::all();
+        $jobTarget = $jobs->last();
+
+        $response = $this->actingAs($userLogged, 'sanctum')
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json'
+            ])
+            ->get(route('action.job.show', ["path" => "admin", "id" => $jobTarget["id"] + 1]));
+
+        $response->assertStatus(404)
+            ->assertJson(['meta' => ['type' => 'ERROR']]);
+    }
+
+    public function test_get_job_as_company_not_found()
+    {
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $users = User::all();
+        $userLogged = $users->first();
+
+        $jobs = Job::all();
+        $jobTarget = $jobs->last();
+
+        $response = $this->actingAs($userLogged, 'sanctum')
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json'
+            ])
+            ->get(route('action.job.show', ["path" => "company", "id" => $jobTarget["id"] + 1]));
+
+        $response->assertStatus(404)
+            ->assertJson(['meta' => ['type' => 'ERROR']]);
+    }
+
+
+    // Create
+    public function test_store_job_as_admin_success()
+    {
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $users = User::all();
+        $userLogged = $users->first();
+
+        $company = Company::find(rand(1,10));
+        $job_title = JobTitle::find(rand(1,10));
+        $status = "Open";
+
+        $response = $this->actingAs($userLogged, 'sanctum')
+            ->post(route('action.job.create', ['path' => 'admin']), [
+                "company_id" => $company->id,
+                "job_title_id" => $job_title->id,
+                "description" => fake()->text,
+                "status" => $status
             ]);
+
+        $response->assertOk()
+            ->assertJsonStructure(['data']);
     }
 
-    public function test_update_company_id_failure()
+    public function test_store_job_as_admin_invalid()
     {
-        $job = Job::factory()->create();
-        $this
-            ->actingAs($this->admin, 'web')
-            ->json('PUT', route('job.update', ['id' => $job->id]), [
-                'company_id' => null,
-            ])
-            ->assertInvalid(['company_id']);
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
 
-        $this
-            ->actingAs($this->admin, 'web')
-            ->json('PUT', route('job.update', ['id' => $job->id]), [
-                'company_id' => 99999999,
+        $users = User::where('role', "ADMIN")->get();
+        $userLogged = $users->first();
+
+        $job_title = JobTitle::find(rand(1,10));
+        $status = "Open";
+
+        $response = $this->actingAs($userLogged, 'sanctum')
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json'
             ])
-            ->assertInvalid(['company_id']);
+            ->postJson(route('action.job.create', ['path' => 'admin']), [
+                "job_title_id" => $job_title->id,
+                "description" => fake()->text,
+                "status" => $status
+            ]);
+
+        $response->assertStatus(422);
     }
 
-    public function test_update_job_title_id_failure()
+    public function test_store_job_as_company_success()
     {
-        $job = Job::factory()->create();
-        $this
-            ->actingAs($this->admin, 'web')
-            ->json('PUT', route('job.update', ['id' => $job->id]), [
-                'job_title_id' => null,
-            ])
-            ->assertInvalid(['job_title_id']);
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
 
-        $this
-            ->actingAs($this->admin, 'web')
-            ->json('PUT', route('job.update', ['id' => $job->id]), [
-                'job_title_id' => 99999999,
-            ])
-            ->assertInvalid(['job_title_id']);
+        $users = User::all();
+        $userLogged = $users->first();
+
+        $company = Company::find(rand(1,10));
+        $job_title = JobTitle::find(rand(1,10));
+        $status = "Open";
+
+        $response = $this->actingAs($userLogged, 'sanctum')
+            ->post(route('action.job.create', ['path' => 'company']), [
+                "company_id" => $company->id,
+                "job_title_id" => $job_title->id,
+                "description" => fake()->text,
+                "status" => $status
+            ]);
+
+        $response->assertOk()
+            ->assertJsonStructure(['data']);
     }
 
-    public function test_update_description_failure()
+    public function test_store_job_as_company_invalid()
     {
-        $job = Job::factory()->create();
-        $this
-            ->actingAs($this->admin, 'web')
-            ->json('PUT', route('job.update', ['id' => $job->id]), [
-                'description' => null,
-            ])
-            ->assertInvalid(['description']);
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
 
-        $this
-            ->actingAs($this->admin, 'web')
-            ->json('PUT', route('job.update', ['id' => $job->id]), [
-                'description' => $this->faker->realTextBetween(20001, 20100),
-            ])
-            ->assertInvalid(['description']);
+        $users = User::where('role', "COMPANY")->get();
+        $userLogged = $users->first();
+
+        $job_title = JobTitle::find(rand(1,10));
+        $status = "Open";
+
+        $response = $this->actingAs($userLogged, 'sanctum')
+            ->postJson(route('action.job.create', ['path' => 'company']), [
+                "description" => fake()->text,
+                "status" => $status
+            ]);
+
+        $response->assertStatus(422);
     }
 
-    public function test_update_status_failure()
+    // Update
+    public function test_update_job_as_admin_success()
     {
-        $job = Job::factory()->create();
-        $this
-            ->actingAs($this->admin, 'web')
-            ->json('PUT', route('job.update', ['id' => $job->id]), [
-                'status' => null,
-            ])
-            ->assertInvalid(['status']);
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
 
-        $this
-            ->actingAs($this->admin, 'web')
-            ->json('PUT', route('job.update', ['id' => $job->id]), [
-                'status' => 'Scheduled',
-            ])
-            ->assertInvalid(['status']);
+        $users = User::all();
+        $userLogged = $users->first();
+
+        $jobs = Job::all();
+        $jobTarget = $jobs->toArray()[rand(0, $jobs->count() - 1)];
+
+        $response = $this->actingAs($userLogged, 'sanctum')
+            ->put(route('action.job.update', ["path" => "admin", "id" => $jobTarget["id"]]), [
+                "company_id" => $jobTarget["company_id"],
+                "job_title_id" => $jobTarget["job_title_id"],
+                "description" => $jobTarget["description"],
+                "status" => "Closed"
+            ]);
+
+        $response->assertOk()
+            ->assertJsonStructure(['data']);
     }
 
-    public function test_delete()
+    public function test_update_job_as_admin_invalid()
     {
-        $job = Job::factory()->create();
-        $this
-            ->actingAs($this->admin, 'web')
-            ->json('DELETE', route('job.delete', ['id' => $job->id]))
-            ->assertNoContent();
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $users = User::all();
+        $userLogged = $users->first();
+
+        $jobs = Job::all();
+        $jobTarget = $jobs->toArray()[rand(0, $jobs->count() - 1)];
+
+        $response = $this->actingAs($userLogged, 'sanctum')
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json'
+            ])
+            ->put(route('action.job.update', ["path" => "admin", "id" => $jobTarget["id"]]), [
+                "status" => "Closed"
+            ]);
+
+        $response->assertStatus(422);
     }
 
-    public function test_delete_not_found()
+    public function test_update_job_as_company_success()
     {
-        $this
-            ->actingAs($this->admin, 'web')
-            ->json('DELETE', route('job.delete', ['id' => 99999999]))
-            ->assertNotFound();
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $users = User::all();
+        $userLogged = $users->first();
+
+        $jobs = Job::all();
+        $jobTarget = $jobs->toArray()[rand(0, $jobs->count() - 1)];
+
+        $response = $this->actingAs($userLogged, 'sanctum')
+            ->put(route('action.job.update', ["path" => "company", "id" => $jobTarget["id"]]), [
+                "company_id" => $jobTarget["company_id"],
+                "job_title_id" => $jobTarget["job_title_id"],
+                "description" => $jobTarget["description"],
+                "status" => "Closed"
+            ]);
+
+        $response->assertOk()
+            ->assertJsonStructure(['data']);
+    }
+
+    public function test_update_job_as_company_invalid()
+    {
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $users = User::all();
+        $userLogged = $users->first();
+
+        $jobs = Job::all();
+        $jobTarget = $jobs->toArray()[rand(0, $jobs->count() - 1)];
+
+        $response = $this->actingAs($userLogged, 'sanctum')
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json'
+            ])
+            ->put(route('action.job.update', ["path" => "company", "id" => $jobTarget["id"]]), [
+                "status" => "Closed"
+            ]);
+
+        $response->assertStatus(422);
+    }
+
+    // Delete
+    public function test_destroy_job_as_admin_success()
+    {
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $users = User::all();
+        $userLogged = $users->first();
+
+        $jobs = Job::all();
+        $jobTarget = $jobs->toArray()[rand(0, $jobs->count() - 1)];
+
+        $response = $this->actingAs($userLogged, 'sanctum')
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json'
+            ])
+            ->delete(route('action.job.delete', ["path" => "admin", "id" => $jobTarget["id"]]));
+
+        $response->assertOk();
+    }
+
+    public function test_destroy_job_as_admin_invalid()
+    {
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $users = User::all();
+        $userLogged = $users->first();
+
+        $jobs = Job::all();
+        $jobTarget = $jobs->last();
+
+        $response = $this->actingAs($userLogged, 'sanctum')
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json'
+            ])
+            ->delete(route('action.job.delete', ["path" => "admin", "id" => $jobTarget["id"] + 1]));
+
+        $response->assertStatus(404);
+    }
+
+    public function test_destroy_job_as_company_success()
+    {
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $users = User::all();
+        $userLogged = $users->first();
+
+        $jobs = Job::all();
+        $jobTarget = $jobs->toArray()[rand(0, $jobs->count() - 1)];
+
+        $response = $this->actingAs($userLogged, 'sanctum')
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json'
+            ])
+            ->delete(route('action.job.delete', ["path" => "company", "id" => $jobTarget["id"]]));
+
+        $response->assertOk();
+    }
+
+    public function test_destroy_job_as_company_invalid()
+    {
+        $this->artisan("migrate:refresh");
+        $this->artisan("db:seed");
+
+        $users = User::all();
+        $userLogged = $users->first();
+
+        $jobs = Job::all();
+        $jobTarget = $jobs->last();
+
+        $response = $this->actingAs($userLogged, 'sanctum')
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json'
+            ])
+            ->delete(route('action.job.delete', ["path" => "company", "id" => $jobTarget["id"] + 1]));
+
+        $response->assertStatus(404);
     }
 }

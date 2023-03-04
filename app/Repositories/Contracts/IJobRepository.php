@@ -24,5 +24,5 @@ interface IJobRepository
 
     public function updateJob(int $id, JobStoreRequest $request): BaseEntity|null;
 
-    public function deleteJob(int $id);
+    public function deleteJob(int $id): BaseEntity|null;
 }
