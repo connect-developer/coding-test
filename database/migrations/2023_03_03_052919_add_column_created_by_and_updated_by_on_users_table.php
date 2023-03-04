@@ -26,6 +26,9 @@ return new class extends Migration
      */
     public function down()
     {
-        //
+        Schema::table('users', function(Blueprint $table) {
+            $table->dropColumn('created_by');
+            $table->dropColumn('updated_by');
+        });
     }
 };
