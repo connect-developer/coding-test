@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Core\Entity\BaseEntity;
 use App\Core\Request\ListDataRequest;
 use App\Core\Request\ListSearchDataRequest;
 use App\Core\Request\ListSearchPageDataRequest;
@@ -9,6 +10,7 @@ use App\Models\Job;
 use App\Repositories\Contracts\IJobRepository;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 
 class JobRepository extends BaseRepository implements IJobRepository
 {
@@ -32,8 +34,12 @@ class JobRepository extends BaseRepository implements IJobRepository
             $filter = [];
 
             foreach ($request->filter as $value) {
-                if ($value[0] === 'status') {
-                    $filter[] = $value;
+                if (Auth::user()->role === 'COMPANY') {
+                    $filter[] = ["status", "=", 1];
+                } else {
+                    if ($value[0] === 'status') {
+                        $filter[] = $value;
+                    }
                 }
 
                 if ($value[0] === 'company_id') {
@@ -46,6 +52,12 @@ class JobRepository extends BaseRepository implements IJobRepository
             }
 
             $model = $model->where($filter);
+        } else {
+            if (Auth::user()->role === 'COMPANY') {
+                $filter[] = ["status", "=", 1];
+
+                $model = $model->where($filter);
+            }
         }
 
         return $model->orderBy($request->order_by, $request->sort)
@@ -72,8 +84,12 @@ class JobRepository extends BaseRepository implements IJobRepository
             $filter = [];
 
             foreach ($request->filter as $value) {
-                if ($value[0] === 'status') {
-                    $filter[] = $value;
+                if (Auth::user()->role === 'COMPANY') {
+                    $filter[] = ["status", "=", 1];
+                } else {
+                    if ($value[0] === 'status') {
+                        $filter[] = $value;
+                    }
                 }
 
                 if ($value[0] === 'company_id') {
@@ -86,6 +102,12 @@ class JobRepository extends BaseRepository implements IJobRepository
             }
 
             $model = $model->where($filter);
+        } else {
+            if (Auth::user()->role === 'COMPANY') {
+                $filter[] = ["status", "=", 1];
+
+                $model = $model->where($filter);
+            }
         }
 
         return $model->orderBy($request->order_by, $request->sort)
@@ -112,8 +134,12 @@ class JobRepository extends BaseRepository implements IJobRepository
             $filter = [];
 
             foreach ($request->filter as $value) {
-                if ($value[0] === 'status') {
-                    $filter[] = $value;
+                if (Auth::user()->role === 'COMPANY') {
+                    $filter[] = ["status", "=", 1];
+                } else {
+                    if ($value[0] === 'status') {
+                        $filter[] = $value;
+                    }
                 }
 
                 if ($value[0] === 'company_id') {
@@ -126,10 +152,30 @@ class JobRepository extends BaseRepository implements IJobRepository
             }
 
             $model = $model->where($filter);
+        } else {
+            if (Auth::user()->role === 'COMPANY') {
+                $filter[] = ["status", "=", 1];
+
+                $model = $model->where($filter);
+            }
         }
 
         return $model->orderBy($request->order_by, $request->sort)
             ->simplePaginate($request->per_page, $request->page);
+    }
+
+    public function findJobById(int $id): BaseEntity|null
+    {
+        $model = $this->model
+            ->with(['company', 'jobTitle']);
+
+        if (Auth::user()->role === 'COMPANY') {
+            $filter[] = ["status", "=", 1];
+
+            $model = $model->where($filter);
+        }
+
+        return $model->find($id);
     }
 
     private function searchJobByKeyword(string $keyword) {

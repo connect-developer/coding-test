@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Contracts;
 
+use App\Core\Entity\BaseEntity;
 use App\Core\Request\ListDataRequest;
 use App\Core\Request\ListSearchDataRequest;
 use App\Core\Request\ListSearchPageDataRequest;
@@ -15,4 +16,6 @@ interface IJobRepository
     public function allSearchJob(ListSearchDataRequest $request): Collection;
 
     public function allSearchPageJob(ListSearchPageDataRequest $request): Paginator;
+
+    public function findJobById(int $id): BaseEntity | null;
 }

@@ -21,6 +21,7 @@ class User extends BaseAuthEntity implements MustVerifyEmail
     protected $fillable = [
         'email',
         'username',
+        'role',
         'password',
     ];
 

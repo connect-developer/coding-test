@@ -11,6 +11,7 @@ use App\Core\Response\GenericListSearchPageResponse;
 use App\Core\Response\GenericListSearchResponse;
 use App\Core\Response\GenericObjectResponse;
 use App\Enums\HttpResponseType;
+use App\Exceptions\ResponseNotFoundException;
 use App\Http\Requests\Job\JobStoreRequest;
 use App\Repositories\Contracts\IJobRepository;
 use App\Services\Contracts\IJobService;
@@ -135,7 +136,38 @@ class JobService extends BaseService implements IJobService
 
     public function getJob(int $id): GenericObjectResponse
     {
-        // TODO: Implement getJob() method.
+        $response = new GenericObjectResponse();
+
+        try {
+            $job = $this->_jobRepository->findJobById($id);
+
+            if (!$job) {
+                throw new ResponseNotFoundException("Job not found");
+            }
+
+            $response = $this->setGenericObjectResponse($response,
+                $job,
+                'SUCCESS',
+                HttpResponseType::SUCCESS);
+
+        } catch (ResponseNotFoundException $ex) {
+            $response = $this->setMessageResponse($response,
+                'ERROR',
+                HttpResponseType::NOT_FOUND,
+                $ex->getMessage());
+
+            Log::error("User $id not found", $response->getMessageResponseError());
+
+        } catch (Exception $ex) {
+            $response = $this->setMessageResponse($response,
+                'ERROR',
+                HttpResponseType::INTERNAL_SERVER_ERROR,
+                $ex->getMessage());
+
+            Log::error("Invalid get job $id", $response->getMessageResponseError());
+        }
+
+        return $response;
     }
 
     public function storeJob(JobStoreRequest $request): GenericObjectResponse
