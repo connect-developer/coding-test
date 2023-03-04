@@ -19,12 +19,14 @@ class JobFactory extends Factory
      */
     public function definition()
     {
-        $companyId = Company::all()->random(1)[0]->id;
-        $jobTitleId = JobTitle::all()->random(1)[0]->id;
+        $company = Company::all()->random(1)
+            ->first();
+        $jobTitle = JobTitle::all()->random(1)
+            ->first();
 
         return [
-            'company_id' => $companyId,
-            'job_title_id' => $jobTitleId,
+            'company_id' => $company->id,
+            'job_title_id' => $jobTitle->id,
             'description' => $this->faker->paragraphs(2, true),
             'status' => JobStatus::getRandomInstance(),
             'created_by' => 'system'

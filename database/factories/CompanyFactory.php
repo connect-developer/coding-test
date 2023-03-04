@@ -17,21 +17,12 @@ class CompanyFactory extends Factory
      */
     public function definition()
     {
-        $user = User::all()->random()->first();
-
         return [
             'name' => $this->faker->company(),
             'about' => $this->faker->catchPhrase(),
             'address' => $this->faker->address(),
             'phone_number' => $this->faker->phoneNumber(),
-            'user_id' => $user->id
+            'user_id' => $this->faker->unique()->numberBetween(1, User::count())
         ];
-    }
-
-    public function user()
-    {
-        return $this->faker->randomElement([
-            User::class
-        ]);
     }
 }

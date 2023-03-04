@@ -87,7 +87,7 @@ class JobController extends ApiBaseController
         return $this->getObjectJsonResponse($updateJobResponse, JobResource::class);
     }
 
-    public function jobDelete(string $path, int $id): string
+    public function jobDelete(string $path, int $id)
     {
         $deleteJobResponse = $this->_jobService->destroyJob($id);
 

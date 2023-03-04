@@ -41,9 +41,9 @@ Route::group(['prefix' => '/{path}', 'middleware' => 'admin.company.path'], func
 
 Route::group(['prefix' => '/job'], function () {
     Route::group(['prefix' => '/list/all'], function () {
-        Route::get('/', [JobController::class, "jobListAll"])->name('action.job.all');
-        Route::post('/search', [JobController::class, "jobListAllSearch"])->name('action.job.all.search');
-        Route::post('/search/page', [JobController::class, "jobListAllSearchPage"])->name('action.job.all.search.page');
+        Route::get('/', [JobController::class, "jobListAll"])->name('action.guest.job.all');
+        Route::post('/search', [JobController::class, "jobListAllSearch"])->name('action.guest.job.all.search');
+        Route::post('/search/page', [JobController::class, "jobListAllSearchPage"])->name('action.guest.job.all.search.page');
     });
 });
 
