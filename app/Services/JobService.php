@@ -270,8 +270,47 @@ class JobService extends BaseService implements IJobService
 
     public function destroyJob(string $id): BasicResponse
     {
-        // TODO: Implement destroyJob() method.
+        $response = new BasicResponse();
+
+        DB::beginTransaction();
+
+        try {
+            $job = $this->_jobRepository->findById($id);
+
+            if (!$job) {
+                throw new ResponseNotFoundException('Job not found');
+            }
+
+            $this->_jobRepository->deleteJob($id);
+
+            DB::commit();
+
+            $response = $this->setMessageResponse($response,
+                "SUCCESS",
+                HttpResponseType::SUCCESS,
+                'Destroy Job ' . $job->id . ' succeed');
+
+            Log::info("Job $job->id: destroyed");
+        } catch (ResponseNotFoundException $ex) {
+            DB::rollBack();
+
+            $response = $this->setMessageResponse($response,
+                'ERROR',
+                HttpResponseType::NOT_FOUND,
+                $ex->getMessage());
+
+            Log::error("Invalid job not found", $response->getMessageResponseError());
+        } catch (\Exception $ex) {
+            DB::rollBack();
+
+            $response = $this->setMessageResponse($response,
+                'ERROR',
+                HttpResponseType::INTERNAL_SERVER_ERROR,
+                $ex->getMessage());
+
+            Log::error("Invalid job destroy", $response->getMessageResponseError());
+        }
+
+        return $response;
     }
-
-
 }

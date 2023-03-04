@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\V1;
 use App\Core\Request\ListDataRequest;
 use App\Core\Request\ListSearchDataRequest;
 use App\Core\Request\ListSearchPageDataRequest;
-use App\Enums\JobStatus;
 use App\Http\Controllers\Api\ApiBaseController;
 use App\Http\Requests\Job\JobStoreRequest;
 use App\Http\Resources\JobResource;
@@ -88,37 +87,14 @@ class JobController extends ApiBaseController
         return $this->getObjectJsonResponse($updateJobResponse, JobResource::class);
     }
 
-
-
-    /**
-     * Update job by admin.
-     *
-     * @param JobStoreRequest $request
-     * @param integer $id
-     * @return void
-     */
-    public function update(JobStoreRequest $request, int $id)
+    public function jobDelete(string $path, int $id): string
     {
-        $job = Job::find($id);
-        $job->company_id = $request->company_id;
-        $job->job_title_id = $request->job_title_id;
-        $job->description = $request->description;
-        $job->status = JobStatus::fromKey($request->status);
-        $job->save();
-        return new JobResource($job);
-    }
+        $deleteJobResponse = $this->_jobService->destroyJob($id);
 
-    /**
-     * Delete job by admin.
-     *
-     * @param JobStoreRequest $request
-     * @param integer $id
-     * @return void
-     */
-    public function delete(int $id)
-    {
-        $job = Job::find($id);
-        $job->delete();
-        return response()->noContent();
+        if ($deleteJobResponse->isError()) {
+            return $this->getErrorJsonResponse($deleteJobResponse);
+        }
+
+        return $this->getSuccessLatestJsonResponse($deleteJobResponse);
     }
 }

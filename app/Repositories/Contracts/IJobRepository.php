@@ -23,4 +23,6 @@ interface IJobRepository
     public function createJob(JobStoreRequest $request): BaseEntity;
 
     public function updateJob(int $id, JobStoreRequest $request): BaseEntity|null;
+
+    public function deleteJob(int $id);
 }

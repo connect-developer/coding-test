@@ -222,6 +222,23 @@ class JobRepository extends BaseRepository implements IJobRepository
         return $job->fresh();
     }
 
+    public function deleteJob(int $id)
+    {
+        $job = $this->model->where('id', $id);
+
+        if (Auth::user()->role === "COMPANY") {
+            $job = $job->where('company_id', Auth::user()->company->id);
+        }
+
+        $job = $job->get()->first();
+
+        if (!$job) {
+            return null;
+        }
+
+        return $job->delete();
+    }
+
     private function searchJobByKeyword(string $keyword) {
         return [
             'description' => "%" . $keyword . "%",
