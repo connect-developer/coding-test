@@ -172,7 +172,44 @@ class JobService extends BaseService implements IJobService
 
     public function storeJob(JobStoreRequest $request): GenericObjectResponse
     {
-        // TODO: Implement storeJob() method.
+        $response = new GenericObjectResponse();
+
+        try {
+            DB::beginTransaction();
+
+            $createJob = $this->_jobRepository->createJob($request);
+
+            DB::commit();
+
+            $response = $this->setGenericObjectResponse($response,
+                $createJob,
+                'SUCCESS',
+                HttpResponseType::SUCCESS);
+
+            Log::info("Job created");
+
+        } catch (QueryException $ex) {
+            DB::rollBack();
+
+            $response = $this->setMessageResponse($response,
+                'ERROR',
+                HttpResponseType::BAD_REQUEST,
+                $ex->getMessage());
+
+            Log::error("Invalid query", $response->getMessageResponseError());
+
+        } catch (Exception $ex) {
+            DB::rollBack();
+
+            $response = $this->setMessageResponse($response,
+                'ERROR',
+                HttpResponseType::INTERNAL_SERVER_ERROR,
+                $ex->getMessage());
+
+            Log::error("Invalid create job", $response->getMessageResponseError());
+        }
+
+        return $response;
     }
 
     public function updateJob(JobStoreRequest $request): GenericObjectResponse
