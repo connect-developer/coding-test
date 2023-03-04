@@ -5,6 +5,7 @@ namespace App\Http\Requests\Job;
 use App\Core\Request\AuditableRequest;
 use App\Enums\JobStatus;
 use App\Helpers\Common;
+use App\Models\Company;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 

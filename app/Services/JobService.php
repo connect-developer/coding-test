@@ -272,8 +272,6 @@ class JobService extends BaseService implements IJobService
     {
         $response = new BasicResponse();
 
-        DB::beginTransaction();
-
         try {
             $job = $this->_jobRepository->findById($id);
 
@@ -283,8 +281,6 @@ class JobService extends BaseService implements IJobService
 
             $this->_jobRepository->deleteJob($id);
 
-            DB::commit();
-
             $response = $this->setMessageResponse($response,
                 "SUCCESS",
                 HttpResponseType::SUCCESS,
@@ -292,8 +288,6 @@ class JobService extends BaseService implements IJobService
 
             Log::info("Job $job->id: destroyed");
         } catch (ResponseNotFoundException $ex) {
-            DB::rollBack();
-
             $response = $this->setMessageResponse($response,
                 'ERROR',
                 HttpResponseType::NOT_FOUND,
@@ -301,8 +295,6 @@ class JobService extends BaseService implements IJobService
 
             Log::error("Invalid job not found", $response->getMessageResponseError());
         } catch (\Exception $ex) {
-            DB::rollBack();
-
             $response = $this->setMessageResponse($response,
                 'ERROR',
                 HttpResponseType::INTERNAL_SERVER_ERROR,

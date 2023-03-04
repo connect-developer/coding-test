@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -21,6 +22,7 @@ class CompanyFactory extends Factory
             'about' => $this->faker->catchPhrase(),
             'address' => $this->faker->address(),
             'phone_number' => $this->faker->phoneNumber(),
+            'user_id' => $this->faker->unique()->numberBetween(1, User::count())
         ];
     }
 }
