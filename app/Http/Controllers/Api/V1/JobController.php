@@ -12,7 +12,6 @@ use App\Http\Resources\JobResource;
 use App\Http\Resources\JobResourceCollection;
 use App\Models\Job;
 use App\Services\Contracts\IJobService;
-use Illuminate\Http\Request;
 
 class JobController extends ApiBaseController
 {
@@ -67,31 +66,17 @@ class JobController extends ApiBaseController
         return $this->getObjectJsonResponse($job, JobResource::class);
     }
 
-
-    /**
-     * Show a opening job to applicants.
-     *
-     * @param integer $id
-     * @return void
-     */
-    public function show(int $id)
+    public function jobCreate(JobStoreRequest $request)
     {
-        $job = Job::where('status', JobStatus::Open)->find($id);
-        return new JobResource($job);
+        $storeJobResponse = $this->_jobService->storeJob($request);
+
+        if ($storeJobResponse->isError()) {
+            return $this->getErrorJsonResponse($storeJobResponse);
+        }
+
+        return $this->getObjectJsonResponse($storeJobResponse, JobResource::class);
     }
 
-
-    /**
-     * Show a opening job to applicants by admin.
-     *
-     * @param integer $id
-     * @return void
-     */
-    public function showAdmin(int $id)
-    {
-        $job = Job::find($id);
-        return new JobResource($job);
-    }
 
     /**
      * Register a job by admin.

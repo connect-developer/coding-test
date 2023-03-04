@@ -6,6 +6,8 @@ use App\Core\Entity\BaseEntity;
 use App\Core\Request\ListDataRequest;
 use App\Core\Request\ListSearchDataRequest;
 use App\Core\Request\ListSearchPageDataRequest;
+use App\Enums\JobStatus;
+use App\Http\Requests\Job\JobStoreRequest;
 use App\Models\Job;
 use App\Repositories\Contracts\IJobRepository;
 use Illuminate\Pagination\Paginator;
@@ -176,6 +178,22 @@ class JobRepository extends BaseRepository implements IJobRepository
         }
 
         return $model->find($id);
+    }
+
+    public function createJob(JobStoreRequest $request): BaseEntity
+    {
+        $job = new $this->model([
+            "company_id" => $request->company_id,
+            "job_title_id" => $request->job_title_id,
+            "description" => $request->description,
+            "status" => 1
+        ]);
+
+        $this->setAuditableInformationFromRequest($job, $request);
+
+        $job->save();
+
+        return $job->fresh();
     }
 
     private function searchJobByKeyword(string $keyword) {
