@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use App\Core\Entity\BaseEntity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
-class Company extends Model
+class Company extends BaseEntity
 {
     use HasFactory;
 

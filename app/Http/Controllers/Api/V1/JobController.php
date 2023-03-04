@@ -2,26 +2,59 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Core\Request\ListDataRequest;
+use App\Core\Request\ListSearchDataRequest;
+use App\Core\Request\ListSearchPageDataRequest;
 use App\Enums\JobStatus;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ApiBaseController;
 use App\Http\Requests\Job\JobStoreRequest;
 use App\Http\Resources\JobResource;
 use App\Models\Job;
+use App\Services\Contracts\IJobService;
 use Illuminate\Http\Request;
 
-class JobController extends Controller
+class JobController extends ApiBaseController
 {
-    /**
-     * Get a list of opening jobs to applicants.
-     *
-     * @param Request $request
-     * @return void
-     */
-    public function view(Request $request)
+    public IJobService $_jobService;
+
+    public function __construct(IJobService $jobService)
     {
-        $jobs = Job::where('status', JobStatus::Open)->paginate($request->per_page);
-        return JobResource::collection($jobs);
+        $this->_jobService = $jobService;
     }
+
+    public function jobListAll(ListDataRequest $request)
+    {
+        $jobs = $this->_jobService->getAllJob($request);
+
+        if ($jobs->isError()) {
+            return $this->getErrorJsonResponse($jobs);
+        }
+
+        return $this->getListJsonResponse($jobs, JobResource::class);
+    }
+
+    public function jobListAllSearch(ListSearchDataRequest $request)
+    {
+        $jobs = $this->_jobService->getAllSearchJob($request);
+
+        if ($jobs->isError()) {
+            return $this->getErrorJsonResponse($jobs);
+        }
+
+        return $this->getListSearchJsonResponse($jobs, JobResource::class);
+    }
+
+    public function jobListAllSearchPage(ListSearchPageDataRequest $request)
+    {
+        $jobs = $this->_jobService->getAllSearchPageJob($request);
+
+        if ($jobs->isError()) {
+            return $this->getErrorJsonResponse($jobs);
+        }
+
+        return $this->getListSearchPageJsonResponse($jobs, JobResource::class);
+    }
+
 
     /**
      * Show a opening job to applicants.
@@ -34,18 +67,7 @@ class JobController extends Controller
         $job = Job::where('status', JobStatus::Open)->find($id);
         return new JobResource($job);
     }
-
-    /**
-     * Get a list of opening jobs to applicants by admin.
-     *
-     * @param Request $request
-     * @return void
-     */
-    public function viewByAdmin(Request $request)
-    {
-        $jobs = Job::paginate($request->per_page);
-        return JobResource::collection($jobs);
-    }
+    
 
     /**
      * Show a opening job to applicants by admin.
