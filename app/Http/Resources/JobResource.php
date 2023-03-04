@@ -2,10 +2,9 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Http\Resources\Json\ResourceCollection;
-use Illuminate\Support\Collection;
+use Illuminate\Http\Resources\Json\JsonResource;
 
-class JobResource extends ResourceCollection
+class JobResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -15,20 +14,14 @@ class JobResource extends ResourceCollection
      */
     public function toArray($request)
     {
-        $collection = new Collection();
-
-        $this->collection->map(function ($value) use ($collection) {
-            $collection->push([
-                'id' => $value->id,
-                'company' => new CompanyResource($value->company),
-                'job_title' => new JobTitleResource($value->jobTitle),
-                'description' => $value->description,
-                'status' => $value->status->key,
-                'created_at' => $value->created_at->timestamp,
-                'updated_at' => $value->updated_at->timestamp,
-            ]);
-        });
-
-        return $collection->toArray();
+        return [
+            'id' => $this->id,
+            'company' => new CompanyResource($this->company),
+            'job_title' => new JobTitleResource($this->jobTitle),
+            'description' => $this->description,
+            'status' => $this->status->key,
+            'created_at' => $this->created_at->timestamp,
+            'updated_at' => $this->updated_at->timestamp,
+        ];
     }
 }

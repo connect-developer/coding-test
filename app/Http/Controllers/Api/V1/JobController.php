@@ -9,6 +9,7 @@ use App\Enums\JobStatus;
 use App\Http\Controllers\Api\ApiBaseController;
 use App\Http\Requests\Job\JobStoreRequest;
 use App\Http\Resources\JobResource;
+use App\Http\Resources\JobResourceCollection;
 use App\Models\Job;
 use App\Services\Contracts\IJobService;
 use Illuminate\Http\Request;
@@ -30,7 +31,7 @@ class JobController extends ApiBaseController
             return $this->getErrorJsonResponse($jobs);
         }
 
-        return $this->getListJsonResponse($jobs, JobResource::class);
+        return $this->getListJsonResponse($jobs, JobResourceCollection::class);
     }
 
     public function jobListAllSearch(ListSearchDataRequest $request)
@@ -41,7 +42,7 @@ class JobController extends ApiBaseController
             return $this->getErrorJsonResponse($jobs);
         }
 
-        return $this->getListSearchJsonResponse($jobs, JobResource::class);
+        return $this->getListSearchJsonResponse($jobs, JobResourceCollection::class);
     }
 
     public function jobListAllSearchPage(ListSearchPageDataRequest $request)
@@ -52,7 +53,18 @@ class JobController extends ApiBaseController
             return $this->getErrorJsonResponse($jobs);
         }
 
-        return $this->getListSearchPageJsonResponse($jobs, JobResource::class);
+        return $this->getListSearchPageJsonResponse($jobs, JobResourceCollection::class);
+    }
+
+    public function jobShow(string $path, int $id)
+    {
+        $job = $this->_jobService->getJob($id);
+
+        if ($job->isError()) {
+            return $this->getErrorJsonResponse($job);
+        }
+
+        return $this->getObjectJsonResponse($job, JobResource::class);
     }
 
 
@@ -67,7 +79,7 @@ class JobController extends ApiBaseController
         $job = Job::where('status', JobStatus::Open)->find($id);
         return new JobResource($job);
     }
-    
+
 
     /**
      * Show a opening job to applicants by admin.
