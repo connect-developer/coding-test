@@ -34,6 +34,7 @@ Route::group(['prefix' => '/{path}', 'middleware' => 'admin.company.path'], func
             Route::get('/{id}', [JobController::class, "jobShow"])->name('action.job.show');
             Route::post('/create', [JobController::class, "jobCreate"])->name('action.job.create');
             Route::put('/update/{id}', [JobController::class, "jobUpdate"])->name('action.job.update');
+            Route::delete('/delete/{id}', [JobController::class, "jobDelete"])->name('action.job.delete');
         });
     });
 });

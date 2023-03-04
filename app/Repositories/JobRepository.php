@@ -36,11 +36,15 @@ class JobRepository extends BaseRepository implements IJobRepository
             $filter = [];
 
             foreach ($request->filter as $value) {
-                if (Auth::user()->role === 'COMPANY') {
+                if (!Auth::user()) {
                     $filter[] = ["status", "=", 1];
                 } else {
-                    if ($value[0] === 'status') {
-                        $filter[] = $value;
+                    if (Auth::user()->role === 'COMPANY') {
+                        $filter[] = ["status", "=", 1];
+                    } else {
+                        if ($value[0] === 'status') {
+                            $filter[] = $value;
+                        }
                     }
                 }
 
@@ -55,10 +59,14 @@ class JobRepository extends BaseRepository implements IJobRepository
 
             $model = $model->where($filter);
         } else {
-            if (Auth::user()->role === 'COMPANY') {
+            if (!Auth::user()) {
                 $filter[] = ["status", "=", 1];
+            } else {
+                if (Auth::user()->role === 'COMPANY') {
+                    $filter[] = ["status", "=", 1];
 
-                $model = $model->where($filter);
+                    $model = $model->where($filter);
+                }
             }
         }
 
@@ -86,11 +94,15 @@ class JobRepository extends BaseRepository implements IJobRepository
             $filter = [];
 
             foreach ($request->filter as $value) {
-                if (Auth::user()->role === 'COMPANY') {
+                if (!Auth::user()) {
                     $filter[] = ["status", "=", 1];
                 } else {
-                    if ($value[0] === 'status') {
-                        $filter[] = $value;
+                    if (Auth::user()->role === 'COMPANY') {
+                        $filter[] = ["status", "=", 1];
+                    } else {
+                        if ($value[0] === 'status') {
+                            $filter[] = $value;
+                        }
                     }
                 }
 
@@ -105,10 +117,14 @@ class JobRepository extends BaseRepository implements IJobRepository
 
             $model = $model->where($filter);
         } else {
-            if (Auth::user()->role === 'COMPANY') {
+            if (!Auth::user()) {
                 $filter[] = ["status", "=", 1];
+            } else {
+                if (Auth::user()->role === 'COMPANY') {
+                    $filter[] = ["status", "=", 1];
 
-                $model = $model->where($filter);
+                    $model = $model->where($filter);
+                }
             }
         }
 
@@ -136,11 +152,15 @@ class JobRepository extends BaseRepository implements IJobRepository
             $filter = [];
 
             foreach ($request->filter as $value) {
-                if (Auth::user()->role === 'COMPANY') {
+                if (!Auth::user()) {
                     $filter[] = ["status", "=", 1];
                 } else {
-                    if ($value[0] === 'status') {
-                        $filter[] = $value;
+                    if (Auth::user()->role === 'COMPANY') {
+                        $filter[] = ["status", "=", 1];
+                    } else {
+                        if ($value[0] === 'status') {
+                            $filter[] = $value;
+                        }
                     }
                 }
 
@@ -155,10 +175,14 @@ class JobRepository extends BaseRepository implements IJobRepository
 
             $model = $model->where($filter);
         } else {
-            if (Auth::user()->role === 'COMPANY') {
+            if (!Auth::user()) {
                 $filter[] = ["status", "=", 1];
+            } else {
+                if (Auth::user()->role === 'COMPANY') {
+                    $filter[] = ["status", "=", 1];
 
-                $model = $model->where($filter);
+                    $model = $model->where($filter);
+                }
             }
         }
 
@@ -220,6 +244,23 @@ class JobRepository extends BaseRepository implements IJobRepository
         $job->save();
 
         return $job->fresh();
+    }
+
+    public function deleteJob(int $id)
+    {
+        $job = $this->model->where('id', $id);
+
+        if (Auth::user()->role === "COMPANY") {
+            $job = $job->where('company_id', Auth::user()->company->id);
+        }
+
+        $job = $job->get()->first();
+
+        if (!$job) {
+            return null;
+        }
+
+        return $job->delete();
     }
 
     private function searchJobByKeyword(string $keyword) {
