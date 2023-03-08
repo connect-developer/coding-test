@@ -10,6 +10,13 @@ class Job extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'company_id',
+        'job_title_id',
+        'description',
+        'status'
+    ];
+
     protected $casts = [
         'status' => JobStatus::class,
     ];
