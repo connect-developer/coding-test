@@ -66,6 +66,7 @@ class JobController extends Controller
      */
     public function create(JobStoreRequest $request)
     {
+        dd($request->company_id);
         $job = new Job;
         $job->company_id = $request->company_id;
         $job->job_title_id = $request->job_title_id;
