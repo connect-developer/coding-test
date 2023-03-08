@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Company\AdminController as CompanyAdminController;
+use App\Http\Controllers\Company\AuthController;
+use App\Http\Controllers\Company\CompanyController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\LoginController;
 use Illuminate\Support\Facades\Route;
@@ -34,3 +37,13 @@ Route::get('/admin/jobs/{id}', [JobController::class, 'showByAdmin'])->name('job
 Route::post('/admin/jobs', [JobController::class, 'create'])->name('job.create');
 Route::put('/admin/jobs/{id}', [JobController::class, 'update'])->name('job.update');
 Route::delete('/admin/jobs/{id}', [JobController::class, 'delete'])->name('job.delete');
+
+Route::prefix('company')->as('company.')->group(function() {
+    Route::post('/login', [AuthController::class, 'login'])->name('login');
+    
+    Route::middleware('auth:sanctum')->group(function() {
+        Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+        Route::get('/me', [CompanyAdminController::class, 'me'])->name('me');
+        Route::resource('/jobs', CompanyController::class);
+    });
+});
