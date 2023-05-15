@@ -3,23 +3,42 @@
 namespace App\Http\Controllers;
 
 use App\Enums\JobStatus;
+use App\Http\Requests\JobPaginateRequest;
+use App\Http\Requests\JobRequest;
 use App\Http\Requests\JobStoreRequest;
 use App\Http\Resources\JobResource;
 use App\Models\Job;
+use App\Repositories\JobRepository;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class JobController extends Controller
 {
-    /**
-     * Get a list of opening jobs to applicants.
-     *
-     * @param Request $request
-     * @return void
-     */
-    public function view(Request $request)
+    private $jobRepository;
+
+    public function __construct(JobRepository $jobRepository)
     {
-        $jobs = Job::where('status', JobStatus::Open)->paginate($request->per_page);
+        $this->jobRepository = $jobRepository;
+    }
+
+    public function index(JobPaginateRequest $request)
+    {
+        $jobs = $this->jobRepository->all($request->validated());
+
         return JobResource::collection($jobs);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(JobRequest $request)
+    {
+        $job = $this->jobRepository->save($request->validated());
+
+        return (new JobResource($job));
     }
 
     /**
@@ -28,82 +47,35 @@ class JobController extends Controller
      * @param integer $id
      * @return void
      */
-    public function show(int $id)
+    public function show(Job $job): JobResource
     {
-        $job = Job::where('status', JobStatus::Open)->find($id);
-        return new JobResource($job);
+        return (new JobResource($job));
     }
 
-    /**
-     * Get a list of opening jobs to applicants by admin.
+     /**
+     * Update the specified resource in storage.
      *
-     * @param Request $request
-     * @return void
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
      */
-    public function viewByAdmin(Request $request)
+    public function update(JobRequest $request, Job $job): JobResource
     {
-        $jobs = Job::paginate($request->per_page);
-        return JobResource::collection($jobs);
+        $job = $this->jobRepository->update($request->validated(), $job);
+
+        return (new JobResource($job));
     }
 
-    /**
-     * Show a opening job to applicants by admin.
+     /**
+     * Remove the specified resource from storage.
      *
-     * @param integer $id
-     * @return void
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
      */
-    public function showAdmin(int $id)
+    public function delete(Job $job): Response
     {
-        $job = Job::find($id);
-        return new JobResource($job);
-    }
-
-    /**
-     * Register a job by admin.
-     *
-     * @param JobStoreRequest $request
-     * @return void
-     */
-    public function create(JobStoreRequest $request)
-    {
-        $job = new Job;
-        $job->company_id = $request->company_id;
-        $job->job_title_id = $request->job_title_id;
-        $job->description = $request->description;
-        $job->status = JobStatus::fromKey($request->status);
-        $job->save();
-        return new JobResource($job);
-    }
-
-    /**
-     * Update job by admin.
-     *
-     * @param JobStoreRequest $request
-     * @param integer $id
-     * @return void
-     */
-    public function update(JobStoreRequest $request, int $id)
-    {
-        $job = Job::find($id);
-        $job->company_id = $request->company_id;
-        $job->job_title_id = $request->job_title_id;
-        $job->description = $request->description;
-        $job->status = JobStatus::fromKey($request->status);
-        $job->save();
-        return new JobResource($job);
-    }
-
-    /**
-     * Delete job by admin.
-     *
-     * @param JobStoreRequest $request
-     * @param integer $id
-     * @return void
-     */
-    public function delete(int $id)
-    {
-        $job = Job::find($id);
         $job->delete();
+
         return response()->noContent();
     }
 }

@@ -13,7 +13,16 @@ class LoginController extends Controller
         if (Auth::guard('web')->attempt($request->only(['email', 'password']))) {
             $request->session()->regenerate();
 
-            return new AdminResource(Auth::user());
+            $user = $request->user();
+
+            $tokenResult = $user->createToken('Personal Access Token');
+            $token = $tokenResult->plainTextToken;
+
+            return response()->json([
+                'accessToken' => $token,
+                'token_type' => 'Bearer',
+                'admin' => $user,
+            ]);
         }
 
         return response()->json([], 401);

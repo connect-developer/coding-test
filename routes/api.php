@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\LoginController;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,21 +17,32 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['guest'])->prefix('/admin')->group(function () {
-    Route::post('login', [LoginController::class, 'login']);
+Route::group(['prefix' => 'jobs'], function () {
+    Route::get('', [JobController::class, 'index'])->name('job.index');
+    Route::get('{job}', [JobController::class, 'show'])->name('job.show');
 });
 
-Route::middleware('auth:sanctum')->prefix('/admin')->group(function () {
-    Route::post('logout', [LoginController::class, 'logout']);
 
-    Route::get('me', [AdminController::class, 'me']);
+Route::group(['prefix' => '/admin'], function () {
+
+    Route::post('login', [LoginController::class, 'login'])->name('login');
+
+    // Protected routes requiring authentication
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('logout', [LoginController::class, 'logout']);
+        Route::get('me', [AdminController::class, 'me']);
+
+        // Jobs
+        Route::apiResource('jobs', JobController::class);
+    });
+
+
+    //Jobs
+    //Route::apiResource('jobs', JobController::class);
+    // Route::get('jobs', [JobController::class, 'viewByAdmin'])->name('job.view.admin');
+    // Route::get('jobs/{job}', [JobController::class, 'showByAdmin'])->name('job.show.admin');
+
+    // Route::post('jobs', [JobController::class, 'create'])->name('job.create');
+    // Route::put('jobs/{job}', [JobController::class, 'update'])->name('job.update');
+    // Route::delete('jobs/{job}', [JobController::class, 'delete'])->name('job.delete');
 });
-
-Route::get('/jobs', [JobController::class, 'view'])->name('job.view');
-Route::get('/jobs/{id}', [JobController::class, 'show'])->name('job.show');
-
-Route::get('/admin/jobs', [JobController::class, 'viewByAdmin'])->name('job.view.admin');
-Route::get('/admin/jobs/{id}', [JobController::class, 'showByAdmin'])->name('job.show.admin');
-Route::post('/admin/jobs', [JobController::class, 'create'])->name('job.create');
-Route::put('/admin/jobs/{id}', [JobController::class, 'update'])->name('job.update');
-Route::delete('/admin/jobs/{id}', [JobController::class, 'delete'])->name('job.delete');

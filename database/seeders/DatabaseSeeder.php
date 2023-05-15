@@ -18,9 +18,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
+
         Admin::factory()->create([
             'email' => 'admin@example.net',
         ]);
+
         Company::factory()->count(100)->create();
         JobTitle::factory()->count(50)->create();
         Job::factory()->count(1000)->create();
