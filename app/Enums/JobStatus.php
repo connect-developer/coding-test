@@ -2,10 +2,9 @@
 
 namespace App\Enums;
 
-use BenSampo\Enum\Enum;
 
-final class JobStatus extends Enum
+enum JobStatus: int
 {
-    const Closed = 0;
-    const Open = 1;
+    case Closed = 0;
+    case Open = 1;
 }

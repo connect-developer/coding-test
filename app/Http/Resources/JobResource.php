@@ -6,6 +6,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class JobResource extends JsonResource
 {
+    
     /**
      * Transform the resource into an array.
      *
@@ -19,7 +20,7 @@ class JobResource extends JsonResource
             'company' => new CompanyResource($this->company),
             'job_title' => new JobTitleResource($this->jobTitle),
             'description' => $this->description,
-            'status' => $this->status->key,
+            'status' => $this->status->name,
             'created_at' => $this->created_at->timestamp,
             'updated_at' => $this->updated_at->timestamp,
         ];

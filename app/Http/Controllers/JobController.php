@@ -2,24 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\JobStatus;
-use App\Http\Requests\JobStoreRequest;
-use App\Http\Resources\JobResource;
+
 use App\Models\Job;
 use Illuminate\Http\Request;
+use App\Http\Resources\JobResource;
 
 class JobController extends Controller
 {
+
+    public $job;
+
+    public function __construct(Job $job){
+        $this->job = $job;
+    }
     /**
      * Get a list of opening jobs to applicants.
      *
      * @param Request $request
      * @return void
      */
-    public function view(Request $request)
+    public function index(Request $request)
     {
-        $jobs = Job::where('status', JobStatus::Open)->paginate($request->per_page);
-        return JobResource::collection($jobs);
+        return JobResource::collection($this->job->statusOpen($request->per_page));
     }
 
     /**
@@ -28,82 +32,8 @@ class JobController extends Controller
      * @param integer $id
      * @return void
      */
-    public function show(int $id)
+    public function show(Job $job)
     {
-        $job = Job::where('status', JobStatus::Open)->find($id);
-        return new JobResource($job);
-    }
-
-    /**
-     * Get a list of opening jobs to applicants by admin.
-     *
-     * @param Request $request
-     * @return void
-     */
-    public function viewByAdmin(Request $request)
-    {
-        $jobs = Job::paginate($request->per_page);
-        return JobResource::collection($jobs);
-    }
-
-    /**
-     * Show a opening job to applicants by admin.
-     *
-     * @param integer $id
-     * @return void
-     */
-    public function showAdmin(int $id)
-    {
-        $job = Job::find($id);
-        return new JobResource($job);
-    }
-
-    /**
-     * Register a job by admin.
-     *
-     * @param JobStoreRequest $request
-     * @return void
-     */
-    public function create(JobStoreRequest $request)
-    {
-        $job = new Job;
-        $job->company_id = $request->company_id;
-        $job->job_title_id = $request->job_title_id;
-        $job->description = $request->description;
-        $job->status = JobStatus::fromKey($request->status);
-        $job->save();
-        return new JobResource($job);
-    }
-
-    /**
-     * Update job by admin.
-     *
-     * @param JobStoreRequest $request
-     * @param integer $id
-     * @return void
-     */
-    public function update(JobStoreRequest $request, int $id)
-    {
-        $job = Job::find($id);
-        $job->company_id = $request->company_id;
-        $job->job_title_id = $request->job_title_id;
-        $job->description = $request->description;
-        $job->status = JobStatus::fromKey($request->status);
-        $job->save();
-        return new JobResource($job);
-    }
-
-    /**
-     * Delete job by admin.
-     *
-     * @param JobStoreRequest $request
-     * @param integer $id
-     * @return void
-     */
-    public function delete(int $id)
-    {
-        $job = Job::find($id);
-        $job->delete();
-        return response()->noContent();
+        return new JobResource($this->job->findOneJob($job));
     }
 }
