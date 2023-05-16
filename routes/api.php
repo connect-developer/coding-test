@@ -18,8 +18,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::group(['prefix' => 'jobs'], function () {
-    Route::get('', [JobController::class, 'index'])->name('job.index');
-    Route::get('{job}', [JobController::class, 'show'])->name('job.show');
+    Route::get('', [JobController::class, 'index']);
+    Route::get('{job}', [JobController::class, 'show']);
 });
 
 
@@ -28,7 +28,7 @@ Route::group(['prefix' => '/admin'], function () {
     Route::post('login', [LoginController::class, 'login'])->name('login');
 
     // Protected routes requiring authentication
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware('auth:sanctum')->name('admin.')->group(function () {
         Route::post('logout', [LoginController::class, 'logout']);
         Route::get('me', [AdminController::class, 'me']);
 
